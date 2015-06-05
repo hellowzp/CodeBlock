@@ -1,0 +1,30 @@
+# depslib dependency file v1.0
+1413292187 source:d:\my_documents\engineering_files\codeblock\studentmanagement\main.cpp
+	<memory>
+	<iostream>
+	"student.h"
+	"order.h"
+	"book.h"
+	"activity.h"
+
+1413293438 d:\my_documents\engineering_files\codeblock\studentmanagement\student.h
+	<string>
+	<vector>
+	"order.h"
+	"printer.h"
+
+1413291750 d:\my_documents\engineering_files\codeblock\studentmanagement\order.h
+	<string>
+	<memory>
+	<iostream>
+
+1413293755 d:\my_documents\engineering_files\codeblock\studentmanagement\printer.h
+	<string>
+
+1412687882 d:\my_documents\engineering_files\codeblock\studentmanagement\book.h
+	"order.h"
+
+1412689475 d:\my_documents\engineering_files\codeblock\studentmanagement\activity.h
+	"order.h"
+	<QDateTime>
+

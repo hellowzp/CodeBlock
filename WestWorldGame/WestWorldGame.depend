@@ -1,0 +1,49 @@
+# depslib dependency file v1.0
+1415395087 source:d:\my_documents\engineering_files\codeblock\westworldgame\basegameentity.cpp
+	"BaseGameEntity.h"
+	<cassert>
+
+1415395647 d:\my_documents\engineering_files\codeblock\westworldgame\basegameentity.h
+	<iostream>
+
+1415398666 source:d:\my_documents\engineering_files\codeblock\westworldgame\main.cpp
+	"Locations.h"
+	"Miner.h"
+	"misc/ConsoleUtils.h"
+	"EntityNames.h"
+
+1048016034 d:\my_documents\engineering_files\codeblock\westworldgame\locations.h
+
+1415399055 d:\my_documents\engineering_files\codeblock\westworldgame\miner.h
+	<string>
+	<cassert>
+	"BaseGameEntity.h"
+	"Locations.h"
+
+1204175890 d:\my_documents\engineering_files\codeblock\ai_games_common\misc\consoleutils.h
+	<windows.h>
+	<conio.h>
+	<iostream>
+
+1071462592 d:\my_documents\engineering_files\codeblock\westworldgame\entitynames.h
+	<string>
+
+1415396021 source:d:\my_documents\engineering_files\codeblock\westworldgame\miner.cpp
+	"Miner.h"
+	"MinerOwnedStates.h"
+
+1415398504 d:\my_documents\engineering_files\codeblock\westworldgame\minerownedstates.h
+	"State.h"
+
+1072181400 d:\my_documents\engineering_files\codeblock\westworldgame\state.h
+
+1415398504 source:d:\my_documents\engineering_files\codeblock\westworldgame\minerownedstates.cpp
+	"MinerOwnedStates.h"
+	"State.h"
+	"Miner.h"
+	"Locations.h"
+	"misc/ConsoleUtils.h"
+	"EntityNames.h"
+	<iostream>
+	<fstream>
+
