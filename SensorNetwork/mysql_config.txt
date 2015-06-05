@@ -1,0 +1,2 @@
+-ID:\application_programs\Perl\c\bin\..\include\mysql_5
+-LD:\application_programs\Perl\c\bin\..\lib -lmysql
