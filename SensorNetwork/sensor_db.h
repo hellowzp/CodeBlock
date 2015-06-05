@@ -5,8 +5,10 @@
 #include <stdio.h>
 #include "config.h"
 
+#ifdef GROUPT
+
 #ifndef HOST
-#define HOST studev.groept.be
+#define HOST "studev.groept.be"
 #endif
 
 #ifndef DATABASE
@@ -14,13 +16,22 @@
 #endif
 
 #ifndef USER
-#define USER a13_syssoft
+#define USER "a13_syssoft"
 #endif
 
 #ifndef PASSWORD
-#define PASSWORD a13_syssoft
+#define PASSWORD "a13_syssoft"
 #endif
 
+#else
+#define HOST "localhost"
+#define DATABASE "sensor"
+#define USER "wang"
+#define PASSWORD "mysql"
+
+#endif
+
+#define TABLE_NAME "WANG_ZHIPENG"
 /*
  * Make a connection to MySQL database
  * Create a table named 'yourname' if the table does not exist
@@ -55,6 +66,8 @@ int get_result_size(MYSQL_RES *result);
  * Print all the records containing in the result
  */
 void print_result(MYSQL_RES *result);
+
+void free_result(MYSQL_RES* result);
 
 
 #ifdef SENSOR_DB_EXTRA

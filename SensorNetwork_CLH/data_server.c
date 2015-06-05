@@ -45,7 +45,7 @@
 #define SET_MAX_TEMP 200
 #endif
 
-#define LOG_FIFO "/tmp/logFifo"
+#define LOG_FIFO "logFifo"
 
 /*------------------------------------------------------------------------------
 		variable declare

@@ -1,13 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "list.h"
-#include "config.h"
 
 #define FREE(p) do{ free((p->data)); (p)->data = NULL;\
-	                free(p); p = NULL;\   //actually p = NULL doesn't have any effect 
-	               } while(0)
+	                free(p); p = NULL; \
+	              } while(0)
 
-//typedef tcp_packet_t* mydata_ptr;  
 
 struct list_item {
 	data_ptr_t data;
@@ -66,8 +64,6 @@ list_ptr_t list_insert_at_index( list_ptr_t list, data_ptr_t data, int index) {
 	
 	list_ptr_t lptrToInsert = malloc(sizeof(list_t));
 	lptrToInsert->data = data;
-	//lptrToInsert->data = malloc(sizeof(*(mydata_ptr)data));  //allocate memory to save data in the heap
-	//*(mydata_ptr)(lptrToInsert->data) = *(mydata_ptr)data;   //don't just use lptrToInsert->data = data!!
 	if(size==1) {
 		if(index<=1) {
 			lptrToInsert->prev = NULL;
@@ -109,63 +105,6 @@ list_ptr_t list_insert_at_index( list_ptr_t list, data_ptr_t data, int index) {
 			return list;
 		}
 	}
-	/*
-	list_ptr_t lptrToInsert = malloc(sizeof(list_t));
-	lptrToInsert->data = data;
-	lptrToInsert->data = malloc(sizeof(*(mydata_ptr)data));  //allocate memory to save data in the heap
-	*(mydata_ptr)(lptrToInsert->data) = *(mydata_ptr)data;   //don't just use lptrToInsert->data = data!!
-	
-	//better to first draw different situations in draft
-	int size = list_size(list);
-	if(size == 0) {
-		list_errno = 0;
-		lptrToInsert->prev = NULL;
-		lptrToInsert->next = NULL;
-		return lptrToInsert;
-	} else if(size==1) {
-		if(index<=1) {
-			lptrToInsert->prev = NULL;
-			lptrToInsert->next = list;
-			list_errno = 0;
-			return lptrToInsert;
-		} else {
-			lptrToInsert->prev = list;
-			list->next = lptrToInsert;
-			lptrToInsert->next = NULL;
-			list_errno = 0;
-			return list;
-		}
-	} else {  //size>=2
-		if(index<=1) {   //inserted at beginning
-			lptrToInsert->prev = NULL;
-			lptrToInsert->next = list;
-			list_errno = 0;    
-			return lptrToInsert;
-		} else if(index<=size){
-			int i = 1;   //inserted at middle
-			list_ptr_t lptr = list;
-			for(i=1;i<index;i++) {
-				lptr = lptr->next;
-			}
-			lptr->prev->next = lptrToInsert;
-			lptrToInsert->prev = lptr->prev;
-			lptrToInsert->next = lptr;
-			lptr->prev = lptrToInsert;
-			list_errno = 0;
-			return list;
-		} else {        //inserted at the end
-			int i = 1;
-			list_ptr_t lptr = list;
-			for(i=1;i<size;i++) {
-				lptr = lptr->next;
-			}
-			lptr->next = lptrToInsert;
-			lptrToInsert->prev = lptr;
-			lptrToInsert->next = NULL;
-			list_errno = 0;
-			return list;
-		}
-	}*/
 }
 
 list_ptr_t list_remove_at_index( list_ptr_t list, int index) {
@@ -207,13 +146,15 @@ list_ptr_t list_free_at_index( list_ptr_t list, int index) {
 		return NULL;
 	}
 	
+	//get the list_pointer at the index
 	int i = 0;
 	list_ptr_t it = list;
-	//get the list_pointer at the index
-	while(it) {
-		i++;
-		if(i==index) break;
-		it = it->next;
+	if(index>1) {
+		while(it) {
+			i++;
+			if(i==index) break;
+			it = it->next;
+		}
 	}
 	
 	//discuss and free 
@@ -303,6 +244,6 @@ int list_get_index_of_data( list_ptr_t list, data_ptr_t data ) {
 	printf("%d %d\n",*(mydata_ptr)(list_get_data_at_index(list,1)),*(mydata_ptr)(list_get_data_at_index(list,2)));
 	list_free_all(&list);
 	return 0;
-} */
+}  */
 
 
