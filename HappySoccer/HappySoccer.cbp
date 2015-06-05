@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="HappySoccer" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/HappySoccer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-ansi" />
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add directory="../AI_Games_Common" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/HappySoccer" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="FieldPlayer.cpp" />
+		<Unit filename="FieldPlayer.h" />
+		<Unit filename="FieldPlayerStates.cpp" />
+		<Unit filename="FieldPlayerStates.h" />
+		<Unit filename="Goal.cpp" />
+		<Unit filename="Goal.h" />
+		<Unit filename="GoalKeeperStates.cpp" />
+		<Unit filename="GoalKeeperStates.h" />
+		<Unit filename="Goalkeeper.cpp" />
+		<Unit filename="Goalkeeper.h" />
+		<Unit filename="ParamLoader.cpp" />
+		<Unit filename="ParamLoader.h" />
+		<Unit filename="Params.ini" />
+		<Unit filename="PlayerBase.cpp" />
+		<Unit filename="PlayerBase.h" />
+		<Unit filename="SoccerBall.cpp" />
+		<Unit filename="SoccerBall.h" />
+		<Unit filename="SoccerMessages.cpp" />
+		<Unit filename="SoccerMessages.h" />
+		<Unit filename="SoccerPitch.cpp" />
+		<Unit filename="SoccerPitch.h" />
+		<Unit filename="SoccerTeam.cpp" />
+		<Unit filename="SoccerTeam.h" />
+		<Unit filename="SteeringBehaviors.cpp" />
+		<Unit filename="SteeringBehaviors.h" />
+		<Unit filename="SupportSpotCalculator.cpp" />
+		<Unit filename="SupportSpotCalculator.h" />
+		<Unit filename="TeamStates.cpp" />
+		<Unit filename="TeamStates.h" />
+		<Unit filename="constants.h" />
+		<Unit filename="icon1.ico" />
+		<Unit filename="main.cpp" />
+		<Unit filename="resource.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

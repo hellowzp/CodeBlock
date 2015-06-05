@@ -1,0 +1,130 @@
+# depslib dependency file v1.0
+1415533932 source:d:\my_documents\engineering_files\codeblock\graphsearch\main.cpp
+	<windows.h>
+	<time.h>
+	<commctrl.h>
+	"constants.h"
+	"misc/utils.h"
+	"Time/PrecisionTimer.h"
+	"Pathfinder.h"
+	"resource.h"
+	"misc/Cgdi.h"
+	"misc/WindowUtils.h"
+
+1090664604 d:\my_documents\engineering_files\codeblock\graphsearch\constants.h
+
+1415531083 d:\my_documents\engineering_files\codeblock\ai_games_common\misc\utils.h
+	<math.h>
+	<sstream>
+	<string>
+	<vector>
+	<limits>
+	<cassert>
+	<iomanip>
+
+1087067672 d:\my_documents\engineering_files\codeblock\ai_games_common\time\precisiontimer.h
+	<windows.h>
+	<cassert>
+
+1090664476 d:\my_documents\engineering_files\codeblock\graphsearch\pathfinder.h
+	<windows.h>
+	<vector>
+	<fstream>
+	<string>
+	<list>
+	"2D/Vector2d.h"
+	"Graph/SparseGraph.h"
+	"Graph/GraphAlgorithms.h"
+	"misc/utils.h"
+	"graph/GraphEdgeTypes.h"
+	"graph/GraphNodeTypes.h"
+
+1129086302 d:\my_documents\engineering_files\codeblock\ai_games_common\2d\vector2d.h
+	<math.h>
+	<windows.h>
+	<iosfwd>
+	<limits>
+	"misc/utils.h"
+
+1415532656 d:\my_documents\engineering_files\codeblock\ai_games_common\graph\sparsegraph.h
+	<vector>
+	<list>
+	<cassert>
+	<string>
+	<iostream>
+	<exception>
+	<stdexcept>
+	"2D/Vector2D.h"
+	"misc/utils.h"
+	"graph/NodeTypeEnumerations.h"
+
+1083110170 d:\my_documents\engineering_files\codeblock\ai_games_common\graph\nodetypeenumerations.h
+
+1415532164 d:\my_documents\engineering_files\codeblock\ai_games_common\graph\graphalgorithms.h
+	<vector>
+	<list>
+	<queue>
+	<stack>
+	"graph/SparseGraph.h"
+	"misc/PriorityQueue.h"
+
+1063803334 d:\my_documents\engineering_files\codeblock\ai_games_common\misc\priorityqueue.h
+	<ostream>
+	<vector>
+	<cassert>
+
+1087067672 d:\my_documents\engineering_files\codeblock\ai_games_common\graph\graphedgetypes.h
+	<ostream>
+	<fstream>
+	"graph/NodeTypeEnumerations.h"
+
+1092083250 d:\my_documents\engineering_files\codeblock\ai_games_common\graph\graphnodetypes.h
+	<list>
+	<ostream>
+	<fstream>
+	"2D/Vector2D.h"
+	"graph/NodeTypeEnumerations.h"
+
+1087883074 d:\my_documents\engineering_files\codeblock\graphsearch\resource.h
+
+1096920296 d:\my_documents\engineering_files\codeblock\ai_games_common\misc\cgdi.h
+	<windows.h>
+	<string>
+	<vector>
+	<cassert>
+	"2D/Vector2D.h"
+
+1089185240 d:\my_documents\engineering_files\codeblock\ai_games_common\misc\windowutils.h
+	<windows.h>
+	<string>
+
+1204191832 source:d:\my_documents\engineering_files\codeblock\graphsearch\pathfinder.cpp
+	"Pathfinder.h"
+	"Graph/HandyGraphFunctions.h"
+	"misc/Cgdi.h"
+	"Time/PrecisionTimer.h"
+	"constants.h"
+	"graph/AStarHeuristicPolicies.h"
+	"misc/Stream_Utility_Functions.h"
+	<iostream>
+
+1415533799 d:\my_documents\engineering_files\codeblock\ai_games_common\graph\handygraphfunctions.h
+	<iostream>
+	"misc/Cgdi.h"
+	"misc/utils.h"
+	"misc/Stream_Utility_Functions.h"
+	"Graph/GraphAlgorithms.h"
+	"Graph/AStarHeuristicPolicies.h"
+
+1111074298 d:\my_documents\engineering_files\codeblock\ai_games_common\misc\stream_utility_functions.h
+	<sstream>
+	<string>
+	<iomanip>
+
+1087067672 d:\my_documents\engineering_files\codeblock\ai_games_common\graph\astarheuristicpolicies.h
+	"misc/utils.h"
+
+1087883074 source:d:\my_documents\engineering_files\codeblock\graphsearch\toolbar.rc
+	"resource.h"
+	"afxres.h"
+
