@@ -45,6 +45,7 @@ typedef struct {
 	char* address;     // mac address
 	map_ptr_t payload; // waspmote sensor field
 } Data, *data_ptr_t; 
+
 /*
 typedef struct {
 	void* msg;   //mqtt message
