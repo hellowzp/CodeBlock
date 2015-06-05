@@ -1,0 +1,28 @@
+#include "opponentshadow.h"
+
+OpponentShadow::OpponentShadow(int type, int id, const int &x, const int &y, int healthPercentage):Enemy(x, y, 0)
+{
+
+    _type = type;
+    _id = id;
+
+    this->setX(this->getXPos() * SCALE_FACTOR);
+    this->setY(this->getYPos() * SCALE_FACTOR);
+
+    this->setPixmap(QPixmap(":/world/Pig-icon.png"));
+
+    this->_healthBar = new StatusBar(StatusBar::HealthBar, this);
+    this->_healthBar->setPercentage(healthPercentage);
+}
+
+void OpponentShadow::moveToPoint(int x, int y)
+{
+    this->setXPos(x);
+    this->setYPos(y);
+    this->setPos(this->getXPos() * SCALE_FACTOR, this->getYPos() * SCALE_FACTOR);
+}
+
+int OpponentShadow::getId()
+{
+    return this->_id;
+}

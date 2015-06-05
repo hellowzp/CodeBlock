@@ -1,0 +1,128 @@
+#include "chooseroomdialog.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QLabel>
+#include <QScrollArea>
+#include "roomframe.h"
+#include <QPushButton>
+#include <iostream>
+#include "newroomdialog.h"
+#include "gamehoster.h"
+#include <QNetworkInterface>
+
+
+ChooseRoomDialog::ChooseRoomDialog(QWidget *parent) :
+    QDialog(parent)
+{
+
+    QVBoxLayout *mainLayout = new QVBoxLayout();
+    this->setLayout(mainLayout);
+
+    //create the upper part of the layout
+
+    QLineEdit *playerNameLineEdit = new QLineEdit();
+    QObject::connect(playerNameLineEdit, SIGNAL(textChanged(QString)), this, SLOT(myNameChanged(QString)));
+    QLabel *playerNameLabel = new QLabel();
+    playerNameLabel->setText("Your Name: ");
+
+    QHBoxLayout *upperLayout = new QHBoxLayout();
+    upperLayout->addWidget(playerNameLabel);
+    upperLayout->addWidget(playerNameLineEdit);
+
+    mainLayout->addLayout(upperLayout);
+
+    //create the middle part the layout
+
+    QScrollArea *roomListArea = new QScrollArea();
+    roomListArea->setFixedHeight(200);
+    this->_roomListLayout = new QVBoxLayout();
+    roomListArea->setLayout(_roomListLayout);
+
+    mainLayout->addWidget(roomListArea);
+
+    //create the lower part of the layout
+
+    QHBoxLayout *lowerLayout = new QHBoxLayout();
+
+    QPushButton *createRoomButton = new QPushButton();
+    createRoomButton->setText("Creat a room");
+    QObject::connect(createRoomButton, SIGNAL(clicked()),this, SLOT(createRoomClicked()));
+
+    lowerLayout->addWidget(createRoomButton);
+
+    mainLayout->addLayout(lowerLayout);
+
+    //set up the broadcast receiver
+    this->_broadcastReceiver = new QUdpSocket();
+    this->_broadcastReceiver->bind(45454, QUdpSocket::ShareAddress);
+    QObject::connect(_broadcastReceiver, SIGNAL(readyRead()), this, SLOT(broadcastReceived()));
+
+
+
+}
+
+void ChooseRoomDialog::setMainWidow(MainWindow *mainWindow)
+{
+    _mainWindow = mainWindow;
+}
+
+
+
+void ChooseRoomDialog::createRoomClicked()
+{
+
+    //create middle layout
+    NewRoomDialog *newRoomDialog = new NewRoomDialog();
+    newRoomDialog->show();
+    newRoomDialog->setMyName(_myName);
+    newRoomDialog->setMainWindow(_mainWindow);
+
+    //close and remove this dialog
+    this->close();
+    delete this;
+}
+
+
+void ChooseRoomDialog::broadcastReceived()
+{
+
+    while (this->_broadcastReceiver->hasPendingDatagrams()) {
+
+        QByteArray broadcastData;
+        broadcastData.resize(_broadcastReceiver->pendingDatagramSize());
+        this->_broadcastReceiver->readDatagram(broadcastData.data(), 1000);
+        QDataStream dataStream(&broadcastData, QIODevice::ReadOnly);
+        Room room;
+        dataStream >> room;
+
+        bool roomExist = false;
+        for(Room & myRoom : _rooms) {
+            if (room.senderAddress == myRoom.senderAddress) {
+                roomExist = true;
+                break;
+            }
+        }
+        if (!roomExist) {
+            this->_rooms.push_back(room);
+            RoomFrame *roomFrame = new RoomFrame(room);
+            roomFrame->setMyName(_myName);
+            roomFrame->setMainWindow(_mainWindow);
+            _roomFrames.push_back(roomFrame);
+            QObject::connect(roomFrame, SIGNAL(closeRoomDialog()), this, SLOT(close()));
+            this->_roomListLayout->addWidget(roomFrame);
+
+        }
+
+        //std::cout << "broadcast received " << room.roomName.toStdString() <<std::endl;
+    }
+}
+
+void ChooseRoomDialog::myNameChanged(QString name)
+{
+    _myName = name;
+    for (RoomFrame *frame : _roomFrames) {
+
+        frame->setMyName(name);
+    }
+}

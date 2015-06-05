@@ -1,0 +1,93 @@
+#include "opponent.h"
+#include <iostream>
+#include "mainwindow.h"
+#include "locker.h"
+#include <QMutex>
+
+
+Opponent::Opponent(const int &x, const int &y, int healthPercentage):Enemy(x, y, 0) {
+
+    this->setX(this->getXPos() * SCALE_FACTOR);
+    this->setY(this->getYPos() * SCALE_FACTOR);
+
+    this->setPixmap(QPixmap(":/world/Pig-icon.png"));
+    QObject::connect(this, SIGNAL(positionChanged()), this, SLOT(refreshPosition()));
+
+    this->_healthBar = new StatusBar(StatusBar::HealthBar, this);
+    this->_healthBar->setPercentage(healthPercentage);
+
+}
+
+void Opponent::activate() {
+
+
+    this->start();
+}
+
+void Opponent::deactivate() {
+
+    this->terminate();
+}
+
+void Opponent::redirectTo(int x, int y){
+
+     this->_pathFindingLocker.lock();
+    this->_finder.findPath(this->getXPos(), this->getYPos(), x, y);
+    this->_pathFindingLocker.unlock();
+}
+
+bool Opponent::makeInjure(int value)
+{
+    _currentHealth -= value;
+
+
+
+    if (_currentHealth <= 0) {
+
+        this->terminate();
+        return true;
+    } else {
+
+        this->_healthBar->setPercentage(_currentHealth *100 / _totalHealth);
+    }
+    return false;
+}
+
+void Opponent::setWorld(WorldView *world)
+{
+    this->_world = world;
+    this->_finder.setWorld(world);
+}
+
+void Opponent::refreshPosition()
+{
+    this->setPos(QPoint(this->getXPos() * SCALE_FACTOR, this->getYPos() * SCALE_FACTOR));
+}
+
+void Opponent::run()
+{
+
+    while(1) {
+        while (this->_finder._pathNodes.size() > 0) {
+
+            this->_pathFindingLocker.lock();
+            PathNode *node = this->_finder._pathNodes.last();
+            this->_finder._pathNodes.pop_back();
+            this->_pathFindingLocker.unlock();
+
+            this->setXPos(node->x);
+            this->setYPos(node->y);
+
+
+            QMutex *mutex = Locker::getLocker();
+            mutex->lock();
+            emit positionChanged();
+            mutex->unlock();
+            this->msleep(500);
+        }
+         this->msleep(500);
+    }
+
+
+
+}

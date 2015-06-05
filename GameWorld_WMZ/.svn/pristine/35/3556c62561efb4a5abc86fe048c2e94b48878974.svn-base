@@ -1,0 +1,76 @@
+#include "heromagic.h"
+#include "opponentreal.h"
+#include <QtCore/QtMath>
+#include <QColor>
+
+
+
+HeroMagic::HeroMagic()
+{
+
+}
+
+void HeroMagic::releaseAt(int x, int y)
+{
+    _x = x;
+    _y = y;
+
+    if (!this->isRunning()){
+
+        this->start();
+
+        //set injure of opponents
+        for (OpponentReal *op : this->_world->_opponents) {
+
+            if (qFabs(op->getXPos() - x) < 6 && qFabs(op->getYPos() - y) < 6) {
+                op->makeInjure(188);
+
+
+            }
+
+        }
+    }
+}
+
+void HeroMagic::setWorld(WorldView *world)
+{
+
+    this->_world = world;
+}
+
+
+
+void HeroMagic::run() {
+
+    QVector<WorldBase *> targetBases;
+    for (int i = -5; i < 6; i++) {
+        for (int j = -5; j < 6; j++) {
+            if ( (0 <= _x + i  &&  _x + i < this->_world->_world->getCols()) && ( 0 <=_y + j && _y + j < this->_world->_world->getRows()) ) {
+                WorldBase *base = this->_world->_bases[(_y + j)* this->_world->_world->getCols() + _x + i];
+                QObject::connect(this, SIGNAL(highlightBeglin(QColor)), base, SLOT(setHightlight(QColor)));
+                QObject::connect(this, SIGNAL(highlightEnd()), base, SLOT(unsetHightlight()));
+                targetBases.push_back(base);
+            }
+        }
+    }
+
+
+    for (int i = 5; i > 0; i--) {
+
+        emit highlightBeglin(QColor(255, 0, 0));
+        this->msleep(200);
+        emit highlightEnd();
+        this->msleep(200);
+
+
+    }
+
+    for (WorldBase *base : targetBases) {
+        QObject::disconnect(this, SIGNAL(highlightBeglin(QColor)), base, SLOT(setHightlight(QColor)));
+        QObject::disconnect(this, SIGNAL(highlightEnd()), base, SLOT(unsetHightlight()));
+
+    }
+
+
+
+}

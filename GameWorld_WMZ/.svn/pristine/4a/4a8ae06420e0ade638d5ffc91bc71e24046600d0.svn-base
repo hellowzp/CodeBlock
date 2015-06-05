@@ -1,0 +1,71 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QGraphicsView>
+#include <QGraphicsItem>
+#include <QFrame>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPixmap>
+#include "mainframe.h"
+#include "worldview.h"
+#include <QSizePolicy>
+#include "assetsframe.h"
+
+
+#define SCALE_FACTOR 10
+
+
+class QPushButton;
+class QMessageBox;
+
+namespace Ui {
+class MainWindow;
+}
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit MainWindow(QWidget *parent = 0);
+    ~MainWindow();
+    void enableButtons();
+
+
+signals:
+    void worldCreated();
+    void pauseGame();
+    void resumeGame();
+
+public slots:
+    void createWorld(int map);
+    void addHeroFrame(HeroModel hero);
+    void gameOver(bool win);
+
+private slots:
+    void pauseClicked();
+    void resumeClicked();
+    void messageConfirmed();
+
+private:
+    Ui::MainWindow *ui;
+    QFrame *_mainFrame;
+    AssetsFrame *_assetsFrame;
+
+    QVBoxLayout *_leftLayout;
+    QVBoxLayout *_rightLayout;
+
+    QPushButton *_pauseButton;
+    QPushButton *_resumeButton;
+
+    QMessageBox *_messageBox;
+
+    WorldView *_worldView;
+
+    QVBoxLayout *_heroFrameLayout;
+};
+
+#endif // MAINWINDOW_H

@@ -1,0 +1,19 @@
+#ifndef HEROSHADOW_H
+#define HEROSHADOW_H
+
+#include "hero.h"
+
+class HeroShadow :public Hero
+{
+public:
+    HeroShadow(int role, int id, int x, int y, int healthPercentage, int magicPercentage);
+
+    void moveToPoint(int x, int y);
+    void shadowMagic(int x, int y);
+    void shadowInjure(int leftPercentage);
+
+private :
+
+};
+
+#endif // HEROSHADOW_H

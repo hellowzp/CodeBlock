@@ -1,0 +1,79 @@
+
+Mon Jun 24 15:50:37 2013
+ ----->  Parity check has passed!
+Mon Jun 24 15:50:41 2013
+ ----->  Parity check has failed!
+Mon Jun 24 15:50:45 2013
+ ----->  Parity check has failed!
+Mon Jun 24 15:50:46 2013
+ ----->  Parity check has failed!
+Mon Jun 24 15:50:46 2013
+ -----> Client logoff , ip is : 102.127.0.0 , port : 5103 
+
+Mon Jun 24 15:52:37 2013
+ ----->  Gateway is opening
+
+Mon Jun 24 15:56:42 2013
+ ----->  Gateway is opening
+
+Mon Jun 24 16:04:21 2013
+ ----->  Gateway is opening
+
+Mon Jun 24 16:04:24 2013
+ -----> Client_app login , ip is : 127.0.0.1 , port : 53677 
+
+Mon Jun 24 16:30:54 2013
+ ----->  Gateway is opening
+
+Mon Jun 24 16:31:08 2013
+ -----> Client login , ip is : 127.0.0.1 , port : 45493 
+
+Mon Jun 24 16:31:12 2013
+ ----->  Parity check has passed!
+Mon Jun 24 16:31:16 2013
+ ----->  Parity check has failed!
+Mon Jun 24 16:31:20 2013
+ ----->  Parity check has failed!
+Mon Jun 24 16:31:21 2013
+ -----> Client logoff , ip is : 0.0.0.0 , port : 0 
+
+Mon Jun 24 16:31:21 2013
+ ----->  Parity check has failed!
+Mon Jun 24 16:57:47 2013
+ ----->  Gateway is opening
+
+Mon Jun 24 16:57:58 2013
+ -----> Client login , ip is : 127.0.0.1 , port : 45577 
+
+Mon Jun 24 16:58:02 2013
+ ----->  Parity check has failed!
+Mon Jun 24 16:58:06 2013
+ ----->  Parity check has passed!
+Mon Jun 24 16:58:10 2013
+ ----->  Parity check has passed!
+Mon Jun 24 16:58:28 2013
+ -----> Client logoff , ip is : 127.0.0.1 , port : 45577 
+
+Mon Jun 24 17:01:12 2013
+ ----->  Gateway is opening
+
+Mon Jun 24 17:01:16 2013
+ -----> Client login , ip is : 127.0.0.1 , port : 45600 
+
+Mon Jun 24 17:01:20 2013
+ ----->  Parity check has passed!
+Mon Jun 24 17:01:24 2013
+ ----->  Parity check has failed!
+Mon Jun 24 17:01:28 2013
+ ----->  Parity check has passed!
+Mon Jun 24 17:01:32 2013
+ ----->  Parity check has failed!
+Mon Jun 24 17:01:36 2013
+ ----->  Parity check has failed!
+Mon Jun 24 17:01:40 2013
+ ----->  Parity check has passed!
+Mon Jun 24 17:01:42 2013
+ ----->  Parity check has passed!
+Mon Jun 24 17:01:42 2013
+ -----> Client logoff , ip is : 255.126.0.0 , port : 20052 
+

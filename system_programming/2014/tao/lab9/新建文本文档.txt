@@ -1,0 +1,154 @@
+
+SOCKET gSocket = INVALID_SOCKET;
+sockaddr_in gSrv;
+sockaddr_in gClient;
+BOOL	gRunFlag = FALSE;
+CWnd*	gpWnd = NULL;
+HANDLE ghThread = NULL;
+
+void *ListenThread()
+{
+	char buf[128]={0};
+	char Msg[MAX_PATH]={0};
+	int len = sizeof(gClient);
+	DWORD dwPreID = 0;
+	
+	while(gRunFlag)
+	{
+		int result = recvfrom( gSocket, buf, sizeof(buf), 0, (sockaddr *)&gClient, (socklen_t *)&len);
+		if ( result > 0 )
+		{//打印buf}
+		else{
+			Sleep(10);
+		}
+	}	
+
+	return 0;
+}
+
+BOOL ConvertStringToIP(DWORD *IP, LPSTR s)
+{
+    *IP     = inet_addr(s);
+    if (*IP != INADDR_NONE)
+	{
+		*IP	= htonl(*IP);
+        return  TRUE;
+	}
+    *IP     = 0;
+    return  FALSE;
+}
+
+void ConvertIPToString(DWORD IP, LPSTR s)
+{
+    sprintf(s, "%lu.%lu.%lu.%lu", IP >> 24, (IP >>16) & 0xff, (IP >> 8) & 0xff,
+        IP & 0xff);
+}
+
+BOOL InitSocket(SOCKET * pSocket,sockaddr_in *psrv,int Port/* =0 */)
+{
+	*pSocket=socket(PF_INET,SOCK_DGRAM,IPPROTO_UDP);
+	if (*pSocket==INVALID_SOCKET)
+	{
+		TRACE("Error:Socket creat failed.\n");
+		fflush(0);
+		return FALSE;
+	}
+	psrv->sin_family=PF_INET;
+	psrv->sin_addr.s_addr=htonl(INADDR_ANY);
+	psrv->sin_port=htons(Port);//这里端口号赋值
+	if (bind(*pSocket,(struct sockaddr *)psrv,sizeof(sockaddr_in))!=0)
+	{
+		TRACE("Error:bind failed.\n");
+		fflush(0);
+		closesocket(*pSocket);
+		return FALSE;
+	}
+   
+	DWORD threadid;
+	if ( (ghThread = CreateThread(NULL,0,
+		 (LPTHREAD_START_ROUTINE)ListenThread,0,0,&threadid))==NULL )
+	{
+		TRACE("Create thread failed.\n");
+	}
+	
+	return TRUE;
+}
+
+BOOL SendMsg(char * Msg,int Len,in_addr addr,short port)
+{
+	SOCKET * pSocket = &gSocket;
+	signed int Sent;
+	
+	sockaddr_in dest;	// 发送目标地址
+	dest.sin_family = PF_INET;
+	dest.sin_addr = addr;
+	dest.sin_port = htons( port );
+	//数据发送
+	Sent = sendto(*pSocket, Msg, Len, 0, (sockaddr *)&dest, sizeof(sockaddr_in));
+	
+	if ( Sent != Len )
+	{
+		TRACE("错误发送UDP信息\n");
+		fflush(0);
+		return FALSE;
+	}
+	else
+		TRACE("%i字节信息已经被发送到主机 %s 端口为 %i\n", Len,inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
+	
+	return TRUE;
+}
+/*初始化*/
+BOOL InitNet(CWnd* pWnd /*= 0*/)
+{
+	if (!AfxSocketInit())
+	{
+		AfxMessageBox("Windows Socket初始化失败!");
+		return FALSE;
+	}
+	if (!InitSocket(&gSocket,&gSrv,LISTEN_PORT))
+	{
+		AfxMessageBox("Windows Socket网络失败");
+ 		return FALSE;
+	}
+	
+	SetSocket(&gSocket,TRUE);//设置gSocket为非阻塞模式
+	gpWnd = pWnd;
+	gRunFlag = TRUE;
+	return TRUE;
+}
+/*反初始化*/
+BOOL FinitNet()
+{
+	if(ghThread)
+    {
+		gRunFlag = FALSE;
+		Sleep(500);
+		if(WaitForSingleObject(ghThread, 100)==WAIT_TIMEOUT)
+		{
+			TerminateThread(ghThread,1041/*强行中止线程退出码*/);
+		}
+        CLOSE_HANDLE(ghThread);
+	}
+
+	if (gSocket!=INVALID_SOCKET)
+	{
+		closesocket(gSocket);
+	}
+#ifdef _WIN32
+	WSACleanup();
+#endif
+	return TRUE;
+}
+/*设置socket为阻塞或非阻塞模式*/
+int SetSocket(SOCKET *pSocket,BOOL bFlag)
+{
+	unsigned long argp = 0;   
+	if (bFlag)
+	{
+		argp = 1;//非阻塞	
+	}
+	
+	int ret   =   ioctlsocket(*pSocket,FIONBIO,(unsigned   long*)&argp);   
+	
+	return ret;
+}

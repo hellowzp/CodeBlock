@@ -1,0 +1,17 @@
+#include "heroshadow.h"
+#include "mainwindow.h"
+
+HeroShadow::HeroShadow(int role, int id, int x, int y, int healthPercentage, int magicPercentage) : Hero(role, id, x, y, healthPercentage, magicPercentage)
+{
+
+
+}
+
+void HeroShadow::moveToPoint(int x, int y)
+{
+    this->setXPos(x);
+    this->setYPos(y);
+    this->setPos(this->getXPos() * SCALE_FACTOR, this->getYPos() * SCALE_FACTOR);
+}
+
+

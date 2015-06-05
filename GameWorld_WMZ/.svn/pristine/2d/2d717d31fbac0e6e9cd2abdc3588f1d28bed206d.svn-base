@@ -1,0 +1,88 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include "world.h"
+#include <vector>
+#include <iostream>
+#include <typeinfo>
+#include "gamebuider.h"
+#include "chooseroomdialog.h"
+#include <QDebug>
+#include "gameclient.h"
+
+
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+
+    /*set the main frame*/
+    _mainFrame = new MainFrame(this);
+    _mainFrame->setObjectName("The main frame");
+    _mainFrame->setLayout(mainLayout);
+
+    /*the upper part of main frame*/
+    QHBoxLayout *upperLayout = new QHBoxLayout;
+    QLabel *medicalLabel = new QLabel(_mainFrame);
+    medicalLabel->setObjectName("Health package label");
+    medicalLabel->setPixmap(QPixmap(":/world/medical-suitecase-icon.png"));
+    upperLayout->addWidget(medicalLabel);
+    mainLayout->addLayout(upperLayout);
+    //std::cout << typeid(*(medicalLabel->parent())).name() << std::endl;
+
+
+
+
+
+
+    _mainFrame->setLayout(mainLayout);
+    _mainFrame->setFixedSize(900, 900);
+    _mainFrame->show();
+
+    this->resize(_mainFrame->size());
+
+
+    this->show();
+
+    ChooseRoomDialog *dialog = new ChooseRoomDialog(this);
+    dialog->setMainWidow(this);
+    dialog->show();
+
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::createWorld(int map)
+{
+    qDebug() << "Client: creating a new world";
+
+    WorldView *worldView = new WorldView(":/world/world.jpg");
+    worldView->setObjectName("The world view");
+    worldView->show();
+
+    QVBoxLayout *mainlayout = dynamic_cast<QVBoxLayout *>(_mainFrame->layout());
+    mainlayout->addWidget(worldView);
+
+    //emit the world created signal
+    emit worldCreated();
+
+    //connect the signal and slot between the game client and world view
+    GameClient *client = GameClient::Instance();
+    QObject::connect(client, SIGNAL(needToCreateHero(int,int,int,int)), worldView, SLOT(createHero(int,int,int,int)));
+    QObject::connect(worldView, SIGNAL(heroCreated(HeroModel)), client, SLOT(heroCreated(HeroModel)));
+    QObject::connect(client, SIGNAL(needToAddHeroShadow(HeroModel)), worldView, SLOT(addHeroShadow(HeroModel)));
+    QObject::connect(client, SIGNAL(needToMoveShadow(int,int,int)), worldView, SLOT(moveShadow(int,int,int)));
+    QObject::connect(client, SIGNAL(needToCreateOpponent(int,int,int,int)), worldView, SLOT(createOpponent(int,int,int,int)));
+    QObject::connect(worldView, SIGNAL(OpponentCreated(OpponentModel)), client, SLOT(opponentCreated(OpponentModel)));
+    QObject::connect(client, SIGNAL(needToRepathOpponents(int)), worldView, SLOT(repathOpponents(int)));
+    QObject::connect(client, SIGNAL(needToAddOpponentShadow(OpponentModel)), worldView, SLOT(addOpponentShadow(OpponentModel)));
+    QObject::connect(client, SIGNAL(needToShadowHeroMagic(int,int,int)), worldView, SLOT(shadowHeroMagic(int,int,int)));
+    QObject::connect(client, SIGNAL(needToShadowInjure(int,int)), worldView, SLOT(shadowInjure(int,int)));
+}

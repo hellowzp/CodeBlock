@@ -1,0 +1,44 @@
+#ifndef OPPONENT_H
+#define OPPONENT_H
+
+#include <QGraphicsPixmapItem>
+#include <world.h>
+#include <QThread>
+#include "worldpathfinder.h"
+#include "worldview.h"
+#include "statusbar.h"
+
+class Opponent :public QThread, public QGraphicsPixmapItem, public Enemy
+{
+    Q_OBJECT
+public:
+    Opponent(const int &x, const int &y, int healthPercentage);
+    void activate();
+    void deactivate();
+    void redirectTo(int x, int y);
+    bool makeInjure(int value);
+    void setWorld(WorldView *world);
+signals:
+    void positionChanged();
+public slots:
+    void refreshPosition();
+
+private:
+    //private methods
+    void run();
+
+    WorldView *_world;
+    StatusBar *_healthBar;
+
+    WorldPathFinder _finder;
+    QMutex _pathFindingLocker;
+
+    const int _totalHealth = 1000;
+    int _currentHealth = 1000;
+    int _speed = 5;
+};
+
+
+
+
+#endif // OPPONENT_H

@@ -1,0 +1,4 @@
+mysql -h studev.groept.be -u a12_syssoft -p a12_syssoft
+create table bingtaos (id int,data varchar(100));
+show tables;
+

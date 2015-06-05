@@ -1,0 +1,28 @@
+#ifndef OPPONENTSHADOW_H
+#define OPPONENTSHADOW_H
+
+#include <QObject>
+#include <QGraphicsPixmapItem>
+#include "world.h"
+#include "mainwindow.h"
+#include "statusbar.h"
+
+class OpponentShadow : public QGraphicsPixmapItem, public Enemy
+{
+
+public:
+    OpponentShadow(int type, int id, const int &x, const int &y, int healthPercentage);
+    void moveToPoint(int x, int y);
+
+    int getId();
+
+private:
+
+    int _id;
+    int _type;
+
+    StatusBar *_healthBar;
+
+};
+
+#endif // OPPONENTSHADOW_H

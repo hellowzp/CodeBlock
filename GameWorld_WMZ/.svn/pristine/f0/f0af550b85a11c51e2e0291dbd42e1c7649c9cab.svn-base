@@ -1,0 +1,118 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include "world.h"
+#include <vector>
+#include <iostream>
+#include <typeinfo>
+#include "gamebuider.h"
+#include "chooseroomdialog.h"
+#include <QDebug>
+#include "gameclient.h"
+#include "heroframe.h"
+#include "assetsframe.h"
+
+
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    QHBoxLayout *mainLayout = new QHBoxLayout;
+
+    /*set the main frame*/
+    _mainFrame = new QFrame(this);
+    _mainFrame->setObjectName("The main frame");
+    _mainFrame->setLayout(mainLayout);
+
+    _leftLayout = new QVBoxLayout();
+    mainLayout->addLayout(_leftLayout);
+
+    _assetsFrame = new AssetsFrame();
+    _leftLayout->addWidget(_assetsFrame);
+
+    _rightLayout = new QVBoxLayout();
+    mainLayout->addLayout(_rightLayout);
+
+
+
+    /*the upper part of main frame*/
+//    QHBoxLayout *upperLayout = new QHBoxLayout;
+//    QLabel *medicalLabel = new QLabel(_mainFrame);
+//    medicalLabel->setObjectName("Health package label");
+//    medicalLabel->setPixmap(QPixmap(":/world/medical-suitecase-icon.png"));
+//    upperLayout->addWidget(medicalLabel);
+//    mainLayout->addLayout(upperLayout);
+    //std::cout << typeid(*(medicalLabel->parent())).name() << std::endl;
+
+
+
+
+
+
+    _mainFrame->setLayout(mainLayout);
+    _mainFrame->setFixedSize(1200, 900);
+    _mainFrame->show();
+
+    this->resize(_mainFrame->size());
+
+
+    this->show();
+
+    ChooseRoomDialog *dialog = new ChooseRoomDialog(this);
+    dialog->setMainWidow(this);
+    dialog->show();
+
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::createWorld(int map)
+{
+    qDebug() << "Client: creating a new world";
+
+    WorldView *worldView = new WorldView(":/world/world.jpg");
+    worldView->setObjectName("The world view");
+    worldView->show();
+
+
+    _rightLayout->addWidget(worldView);
+
+    //emit the world created signal
+    emit worldCreated();
+
+    //connect the signal and slot between the game client and world view
+    GameClient *client = GameClient::Instance();
+    QObject::connect(client, SIGNAL(needToCreateHero(int,int,int,int)), worldView, SLOT(createHero(int,int,int,int)));
+    QObject::connect(worldView, SIGNAL(heroCreated(HeroModel)), client, SLOT(heroCreated(HeroModel)));
+    QObject::connect(client, SIGNAL(needToAddHeroShadow(HeroModel)), worldView, SLOT(addHeroShadow(HeroModel)));
+    QObject::connect(client, SIGNAL(needToMoveShadow(int,int,int)), worldView, SLOT(moveShadow(int,int,int)));
+    QObject::connect(client, SIGNAL(needToCreateOpponent(int,int,int,int)), worldView, SLOT(createOpponent(int,int,int,int)));
+    QObject::connect(worldView, SIGNAL(OpponentCreated(OpponentModel)), client, SLOT(opponentCreated(OpponentModel)));
+    QObject::connect(client, SIGNAL(needToRepathOpponents(int)), worldView, SLOT(repathOpponents(int)));
+    QObject::connect(client, SIGNAL(needToAddOpponentShadow(OpponentModel)), worldView, SLOT(addOpponentShadow(OpponentModel)));
+    QObject::connect(client, SIGNAL(needToShadowHeroMagic(int,int,int)), worldView, SLOT(shadowHeroMagic(int,int,int)));
+    QObject::connect(client, SIGNAL(needToShadowInjure(int,int)), worldView, SLOT(shadowInjure(int,int)));
+    QObject::connect(client, SIGNAL(needToRoundOver(int)), worldView, SLOT(roundOver(int)));
+    QObject::connect(client, SIGNAL(needToAddGift(GiftModel)), worldView, SLOT(addGift(GiftModel)));
+    QObject::connect(client, SIGNAL(needToRemoveGift(int)), worldView, SLOT(removeGift(int)));
+    QObject::connect(client, SIGNAL(needToAddHeroFrame(HeroModel)), this, SLOT(addHeroFrame(HeroModel)));
+    QObject::connect(client, SIGNAL(needToPickGift(int)), _assetsFrame, SLOT(pickGift(int)));
+    QObject::connect(worldView, SIGNAL(roundOverConfirmed(int)), client, SLOT(roundOverConfirmed(int)));
+    QObject::connect(client, SIGNAL(needToGameOver(int)), worldView, SLOT(gameOver(int)));
+
+
+}
+
+void MainWindow::addHeroFrame(HeroModel hero)
+{
+    HeroFrame *heroFrame = new HeroFrame(hero);
+    _leftLayout->addWidget(heroFrame);
+
+    qDebug() << "adding a frame";
+}

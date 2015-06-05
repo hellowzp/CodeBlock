@@ -1,0 +1,98 @@
+#ifndef WORLDVIEW_H
+#define WORLDVIEW_H
+
+#include <QGraphicsView>
+#include <QWidget>
+#include "healthpackage.h"
+#include <QVector>
+#include <QMutex>
+#include "gamehoster.h"
+#include "heroshadow.h"
+#include "heroreal.h"
+#include "assetsframe.h"
+
+class WorldBase;
+class WorldViewAnalyzer;
+class Opponent;
+class Hero;
+class OpponentShadow;
+class OpponentReal;
+class QMessageBox;
+class Gift;
+
+class WorldView : public QGraphicsView
+{
+
+    Q_OBJECT
+
+
+public:
+    WorldView();
+    explicit WorldView(const QString & url);
+
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event);
+    void dragLeaveEvent(QDragLeaveEvent *event);
+    void dropEvent(QDropEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+
+
+
+
+signals:
+    void heroCreated(HeroModel hero);
+    void OpponentCreated(OpponentModel opponent);
+    void roundOverConfirmed(int round);
+public slots:
+    void drawMagic();
+    void createHero(int role, int id, int x, int y);
+    void addHeroShadow(HeroModel hero);
+    void addOpponentShadow(OpponentModel opponent);
+    void moveShadow(int id, int x, int y);
+    void createOpponent(int type, int id, int x, int y);
+    void repathOpponents(int heroId);
+    void shadowHeroMagic(int id, int x, int y);
+    void shadowInjure(int id, int leftPercentage);
+    void roundOver(int round);
+    void addGift(GiftModel gift);
+    void removeGift(int giftId);
+    void gameOver(int win);
+
+
+    WorldBase *getWorldBaseAtIndex(int index) const;
+
+
+private:
+    QVector<HealthPackage *> _healthPackages;
+    QVector<OpponentReal *> _opponents;
+    HeroReal *_hero;
+    QVector<HeroShadow *> _heroShadows;
+    QVector<OpponentShadow *> _opponentShadows;
+    QVector<Gift *> _gifts;
+
+    HealthPackage *_tempPackage;
+    int _worldWidth;
+    int _worldHeight;
+    World *_world;
+
+
+    std::vector<WorldBase *> _bases;
+
+    QMessageBox *_messageBox;
+
+    int calculateHeroDir(int x, int y);
+
+    friend class WorldViewAnalyzer;
+    friend class HeroReal;
+    friend class Opponent;
+    friend class HeroMagic;
+    friend class GameBuider;
+    friend class OpponentReal;
+
+
+
+};
+
+#endif // WORLDVIEW_H

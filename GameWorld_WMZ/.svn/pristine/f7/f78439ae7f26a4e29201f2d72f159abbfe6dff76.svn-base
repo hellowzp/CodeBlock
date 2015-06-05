@@ -1,0 +1,75 @@
+#ifndef WORLDVIEW_H
+#define WORLDVIEW_H
+
+#include <QGraphicsView>
+#include <QWidget>
+#include "healthpackage.h"
+#include <QVector>
+#include <QMutex>
+#include "gamehoster.h"
+#include "heroshadow.h"
+
+class WorldBase;
+class WorldViewAnalyzer;
+class Opponent;
+class Hero;
+
+class WorldView : public QGraphicsView
+{
+
+    Q_OBJECT
+
+
+public:
+    WorldView();
+    explicit WorldView(const QString & url);
+
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dragMoveEvent(QDragMoveEvent *event);
+    void dragLeaveEvent(QDragLeaveEvent *event);
+    void dropEvent(QDropEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+
+    void addAHero(Hero *hero);
+    void addAnOpponent(Opponent *opponent);
+
+signals:
+    void heroCreated(HeroModel hero);
+public slots:
+    void drawMagic();
+    void createHero(int role, int id, int x, int y);
+    void addHeroShadow(HeroModel hero);
+    void moveShadow(int id, int x, int y);
+    void createOpponent(int type, int id, int x, int y);
+
+
+    WorldBase *getWorldBaseAtIndex(int index) const;
+
+
+private:
+    QVector<HealthPackage *> _healthPackages;
+    QVector<Opponent *> _opponents;
+    Hero *_hero;
+    QVector<HeroShadow *> _heroShadows;
+
+    HealthPackage *_tempPackage;
+    int _worldWidth;
+    int _worldHeight;
+    World *_world;
+    std::vector<WorldBase *> _bases;
+
+    int calculateHeroDir(int x, int y);
+
+    friend class WorldViewAnalyzer;
+    friend class Hero;
+    friend class Opponent;
+    friend class HeroMagic;
+    friend class GameBuider;
+
+
+
+};
+
+#endif // WORLDVIEW_H

@@ -1,0 +1,6 @@
+#include<stdio.h>
+void calculate(char *s)
+{
+	printf("%d\n", sizeof(s));
+return 0;
+}

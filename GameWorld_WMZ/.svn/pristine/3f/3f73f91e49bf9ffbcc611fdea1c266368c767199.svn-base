@@ -1,0 +1,81 @@
+#include "assetsframe.h"
+#include <QVBoxLayout>
+
+AssetsFrame::AssetsFrame()
+{
+
+    QVBoxLayout *mainlayout = new QVBoxLayout();
+    this->setLayout(mainlayout);
+
+    _energyLayout = new QHBoxLayout();
+    mainlayout->addLayout(_energyLayout);
+    for (int i = 0; i < 4; i++) {
+
+        AssetLabel *label = new AssetLabel();
+        _energyLayout->addWidget(label);
+        label->setType(ASSERT_TYPE_ENERGY);
+        label->setText(QString("%1").arg(i));
+        label->setFrame(this);
+    }
+
+    _equipmentLayout = new QHBoxLayout();
+    mainlayout->addLayout(_equipmentLayout);
+
+    AssetLabel *swordLabel = new AssetLabel();
+    swordLabel->setType(ASSERT_TYPE_EQUIPMENT_SWORD);
+    swordLabel->setText("Sword");
+    swordLabel->setFrame(this);
+    _equipmentLayout->addWidget(swordLabel);
+
+    AssetLabel *armorLabel = new AssetLabel();
+    armorLabel->setType(ASSERT_TYPE_EQUIPMENT_ARMOR);
+    armorLabel->setText("Armor");
+    armorLabel->setFrame(this);
+    _equipmentLayout->addWidget(armorLabel);
+
+    AssetLabel *bootLabel = new AssetLabel();
+    bootLabel->setType(ASSERT_TYPE_EQUIPMENT_BOOT);
+    bootLabel->setText("Boot");
+    bootLabel->setFrame(this);
+    _equipmentLayout->addWidget(bootLabel);
+
+
+    _assetsLayout = new QGridLayout();
+    mainlayout->addLayout(_assetsLayout);
+    for (int i = 0; i < 4; i ++) {
+
+        for (int j = 0; j < 4; j++) {
+
+            AssetLabel *label = new AssetLabel();
+            _assetsLayout->addWidget(label, i, j);
+            label->setText(QString("%1, %2").arg(i).arg(j));
+            _assetsLabels.push_back(label);
+            label->setFrame(this);
+        }
+    }
+
+    this->setFixedHeight(300);
+
+}
+
+void AssetsFrame::setDragSource(AssetLabel *source)
+{
+    _dragSource = source;
+}
+
+AssetLabel *AssetsFrame::getDragSource() const
+{
+    return _dragSource;
+}
+
+void AssetsFrame::pickGift(int type)
+{
+    for (AssetLabel *label : _assetsLabels) {
+
+        if (label->getItem() == 0) {
+
+            label->setItem(type);
+            break;
+        }
+    }
+}

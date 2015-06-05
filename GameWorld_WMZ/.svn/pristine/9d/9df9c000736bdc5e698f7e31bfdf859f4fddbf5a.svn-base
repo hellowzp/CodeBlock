@@ -1,0 +1,7 @@
+#include "newplayerdialog.h"
+
+NewPlayerDialog::NewPlayerDialog(QWidget *parent) :
+    QDialog(parent)
+{
+
+}

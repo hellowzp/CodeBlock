@@ -1,0 +1,31 @@
+#ifndef ROOMFRAME_H
+#define ROOMFRAME_H
+
+#include <QFrame>
+#include "gamehoster.h"
+#include "mainwindow.h"
+
+class RoomFrame : public QFrame
+{
+    Q_OBJECT
+public:
+    explicit RoomFrame(Room room);
+    void setMyName(QString name);
+    void setMainWindow(MainWindow *mainWindow);
+
+signals:
+    void closeRoomDialog();
+public slots:
+
+private slots:
+    void joinGame();
+
+private:
+    Room _room;
+    QString _myName;
+
+    MainWindow *_mainWindow;
+
+};
+
+#endif // ROOMFRAME_H

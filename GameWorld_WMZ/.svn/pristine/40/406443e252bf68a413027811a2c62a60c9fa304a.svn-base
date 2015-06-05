@@ -1,0 +1,63 @@
+#ifndef HERO_H
+#define HERO_H
+
+#include <QGraphicsPixmapItem>
+
+#include "world.h"
+
+#include <QObject>
+
+#include "heromagic.h"
+#include "statusbar.h"
+
+class WorldView;
+
+class Hero : public QGraphicsPixmapItem, public Tile
+{
+
+
+public:
+    explicit Hero(int role, int id, int x, int y, int healthPercentage, int magicPercentage);
+    //void faceToDirection(int d);
+//    void startMoving();
+//    void stopMoving();
+    void setWorld(WorldView * world);
+
+    void releaseMagicAt(int x, int y);
+
+    int getId();
+//signals:
+//    void needToMove();
+//    void heroMoved(int id, int x, int y);
+//    void heroMovingStoped(int id);
+//    void needToRepathOpponents();
+//private slots:
+//    void moveOneStep();
+
+
+private:
+    //private methods
+    virtual void moveToPoint(int x, int y);
+//    void run();
+
+    WorldView *_world;
+
+    StatusBar *_healthBar;
+    StatusBar *_magicBar;
+
+//    int _healthValue;
+//    const int _totalHealth = 1000;
+//    int _magicValue;
+//    const int _totalMagic = 1000;
+//    int _speed = 5;
+
+//    int _facingDir;
+//    int _movingCounter;
+    HeroMagic _magic;
+
+    int _id;
+    int _role;
+
+};
+
+#endif // HERO_H

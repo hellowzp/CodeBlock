@@ -1,0 +1,84 @@
+#include "gamehostdialog.h"
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QScrollArea>
+#include <QPushButton>
+#include <QLabel>
+#include "gameclient.h"
+#include "gamehoster.h"
+
+
+GameHostDialog::GameHostDialog(bool isEnabled)
+{
+
+    QVBoxLayout *mainLayout = new QVBoxLayout();
+    this->setLayout(mainLayout);
+
+    QLabel *roomNameLabel = new QLabel();
+    GameClient *client = GameClient::Instance();
+    roomNameLabel->setText(client->getRoom().roomName);
+    mainLayout->addWidget(roomNameLabel);
+
+    QScrollArea *playerListScrollArea = new QScrollArea();
+    _playerListLayout = new QVBoxLayout();
+    playerListScrollArea->setLayout(_playerListLayout);
+    mainLayout->addWidget(playerListScrollArea);
+
+    QHBoxLayout *lowerLayout = new QHBoxLayout();
+    mainLayout->addLayout(lowerLayout);
+    QPushButton *startButton = new QPushButton("Start");
+    GameHoster *hoster = GameHoster::Instance();
+    if (hoster != nullptr)
+        QObject::connect(startButton, SIGNAL(clicked()), hoster, SLOT(startGame()));
+    lowerLayout->addWidget(startButton);
+
+    // connect this ui dialog to the client host
+    QObject::connect(client, SIGNAL(needSetMyPlayer(Player)), this, SLOT(myPlayer(Player)));
+    QObject::connect(client, SIGNAL(needSetOtherPlayer(Player)), this, SLOT(otherPlayer(Player)));
+    QObject::connect(this, SIGNAL(needToRequestOtherPlayers()), client, SLOT(requestOtherPlayers()));
+    QObject::connect(client, SIGNAL(needToCloseDialog()), this, SLOT(closeDialog()));
+
+    startButton->setEnabled(isEnabled);
+
+}
+
+
+
+
+void GameHostDialog::otherPlayer(Player player)
+{
+    bool foundPlayer = false;
+    for (PlayerFrame *frame : _otherPlayerFrames) {
+
+        if (frame->getPlayer().id == player.id) {
+            foundPlayer = true;
+            frame->updataFrame(player);
+            break;
+        }
+    }
+
+    if (!foundPlayer) {
+
+        PlayerFrame *newPlayerFrame = new PlayerFrame(player, false);
+        _playerListLayout->addWidget(newPlayerFrame);
+        _otherPlayerFrames.push_back(newPlayerFrame);
+    }
+
+}
+
+void GameHostDialog::myPlayer(Player player)
+{
+    _myFrame = new PlayerFrame(player, true);
+    _playerListLayout->addWidget(_myFrame);
+    QObject::connect(_myFrame, SIGNAL(playerChanged(Player)), GameClient::Instance(), SLOT(playerChanged(Player)));
+
+    //after set my player, we need to request other player also
+    emit needToRequestOtherPlayers();
+}
+
+void GameHostDialog::closeDialog()
+{
+    this->close();
+    delete this;
+}
+

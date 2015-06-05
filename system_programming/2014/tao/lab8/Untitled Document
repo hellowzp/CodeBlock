@@ -1,0 +1,12 @@
+fork()
+
+
+terminal
+
+
+int
+
+main()
+init pipe[2]
+fork()
+

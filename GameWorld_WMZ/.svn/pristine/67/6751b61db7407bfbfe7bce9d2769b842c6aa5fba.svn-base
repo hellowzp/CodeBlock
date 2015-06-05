@@ -1,0 +1,18 @@
+#ifndef MAINFRAME_H
+#define MAINFRAME_H
+
+#include <QFrame>
+
+class MainFrame : public QFrame
+{
+    Q_OBJECT
+public:
+    explicit MainFrame(QWidget *parent = 0);
+    void mousePressEvent(QMouseEvent *);
+signals:
+
+public slots:
+
+};
+
+#endif // MAINFRAME_H

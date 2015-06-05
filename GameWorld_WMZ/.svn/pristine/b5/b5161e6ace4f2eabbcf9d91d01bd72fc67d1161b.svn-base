@@ -1,0 +1,62 @@
+#ifndef HERO_H
+#define HERO_H
+
+#include <QGraphicsPixmapItem>
+#include <QMouseEvent>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include "world.h"
+#include <QThread>
+#include <QObject>
+#include "worldview.h"
+#include "heromagic.h"
+#include "statusbar.h"
+
+class Hero : public QThread, public QGraphicsPixmapItem, public Tile
+{
+
+    Q_OBJECT
+public:
+    explicit Hero(int role, int id, int x, int y, int healthPercentage, int magicPercentage);
+    void faceToDirection(int d);
+    void startMoving();
+    void stopMoving();
+    void setWorld(WorldView * world);
+    void attractOpponents();
+    void releaseMagicAt(int x, int y);
+    int getHealthPercentage();
+    int getMagicPercentage();
+signals:
+    void needToMove();
+    void heroMoved(int id, int x, int y);
+private slots:
+    void moveOneStep();
+
+
+private:
+    //private methods
+    void moveToPoint(int x, int y);
+    void run();
+
+    WorldView *_world;
+
+    StatusBar *_healthBar;
+    StatusBar *_magicBar;
+
+    int _healthValue;
+    const int _totalHealth = 1000;
+    int _magicValue;
+    const int _totalMagic = 1000;
+    int _speed = 5;
+
+    int _facingDir;
+    int _movingCounter;
+    HeroMagic _magic;
+
+    int _id;
+    int _role;
+
+};
+
+#endif // HERO_H

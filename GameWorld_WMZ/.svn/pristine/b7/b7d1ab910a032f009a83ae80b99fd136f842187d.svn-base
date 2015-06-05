@@ -1,0 +1,48 @@
+#ifndef HERO_H
+#define HERO_H
+
+#include <QGraphicsPixmapItem>
+
+#include "world.h"
+
+#include <QObject>
+
+#include "heromagic.h"
+#include "statusbar.h"
+
+class WorldView;
+
+class Hero : public QGraphicsPixmapItem, public Tile
+{
+
+
+public:
+    explicit Hero(int role, int id, int x, int y, int healthPercentage, int magicPercentage);
+    void setWorld(WorldView * world);
+    HeroMagic & getMagic();
+    void setHealthPercentage(int percentage);
+
+
+
+    int getId();
+
+protected:
+    WorldView *_world;
+
+private:
+    //private methods
+
+
+
+
+    StatusBar *_healthBar;
+    StatusBar *_magicBar;
+
+    HeroMagic _magic;
+
+    int _id;
+    int _role;
+
+};
+
+#endif // HERO_H

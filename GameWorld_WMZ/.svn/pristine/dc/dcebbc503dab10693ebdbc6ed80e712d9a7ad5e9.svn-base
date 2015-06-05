@@ -1,0 +1,17 @@
+#include "locker.h"
+
+
+QMutex* Locker::_mutex = 0;
+
+Locker::Locker()
+{
+}
+
+QMutex * Locker::getLocker()
+{
+    if (_mutex == 0) {
+
+        _mutex = new QMutex();
+    }
+    return _mutex;
+}

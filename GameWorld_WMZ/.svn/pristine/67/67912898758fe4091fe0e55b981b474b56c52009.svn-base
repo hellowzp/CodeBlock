@@ -1,0 +1,14 @@
+#ifndef HEALTHPACKAGE_H
+#define HEALTHPACKAGE_H
+
+#include <QGraphicsPixmapItem>
+#include "world.h"
+
+class HealthPackage : public QGraphicsPixmapItem, public Tile
+{
+public:
+    HealthPackage();
+    void MoveToPoint(int x, int y);
+};
+
+#endif // HEALTHPACKAGE_H

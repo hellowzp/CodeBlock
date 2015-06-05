@@ -1,0 +1,26 @@
+#ifndef HEROMAGIC_H
+#define HEROMAGIC_H
+
+#include <QThread>
+#include "worldview.h"
+
+class HeroMagic : public QThread
+{
+
+    Q_OBJECT
+public:
+    HeroMagic();
+    void releaseAt(int x, int y);
+    void setWorld(WorldView *world);
+signals:
+    void highlightBeglin(QColor hightColot);
+    void highlightEnd();
+
+private:
+    void run();
+    int _x;
+    int _y;
+    WorldView *_world;
+};
+
+#endif // HEROMAGIC_H

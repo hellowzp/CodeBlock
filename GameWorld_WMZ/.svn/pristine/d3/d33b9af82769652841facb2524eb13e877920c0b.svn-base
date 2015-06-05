@@ -1,0 +1,44 @@
+#ifndef HEROREAL_H
+#define HEROREAL_H
+
+#include <QThread>
+#include "hero.h"
+
+class HeroReal: public QThread, public Hero
+{
+    Q_OBJECT
+
+public:
+    HeroReal(int role, int id, int x, int y, int healthPercentage, int magicPercentage);
+
+    void faceToDirection(int d);
+    void startMoving();
+    void stopMoving();
+
+    int getHealthPercentage();
+    int getMagicPercentage();
+
+signals:
+    void needToMove();
+    void heroMoved(int id, int x, int y);
+    void heroMovingStoped(int id);
+    void needToRepathOpponents();
+private slots:
+    void moveOneStep();
+
+private:
+    void run();
+
+    virtual void moveToPoint(int x, int y);
+
+    int _healthValue;
+    const int _totalHealth = 1000;
+    int _magicValue;
+    const int _totalMagic = 1000;
+    int _speed = 5;
+
+    int _facingDir;
+    int _movingCounter;
+};
+
+#endif // HEROREAL_H

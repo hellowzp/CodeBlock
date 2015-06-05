@@ -1,0 +1,60 @@
+#ifndef GAMECLIENT_H
+#define GAMECLIENT_H
+
+#include <QTcpSocket>
+
+#include "gamehoster.h"
+
+class GameClient: public QObject
+{
+
+    Q_OBJECT
+public:
+    static void CreateClient(Room room, Player player);
+    static void DestoryClient();
+    static GameClient *Instance();
+    void setPlayer(Player player);
+
+
+    Room getRoom();
+
+signals:
+
+    void needSetMyPlayer(Player player);
+    void needSetOtherPlayer(Player player);
+    void needToCreateWorld(int map);
+    void needToCreateHero(int role, int id, int x, int y);
+    void needToAddHeroShadow(HeroModel hero);
+    void needToMoveShadow(int id, int x, int y);
+    void needToCreateOpponent(int type, int id, int x, int y);
+    void needToRepathOpponents();
+    void needToAddOpponentShadow(OpponentModel opponent);
+
+
+public slots:
+    void playerChanged(Player player);
+    void requestOtherPlayers();
+    void worldCreated();
+    void heroCreated(HeroModel hero);
+    void heroMoved(int id, int x, int y);
+    void heroMovingStoped(int id);
+    void opponentCreated(OpponentModel opponent);
+    void opponentMoved(int id, int x, int y);
+
+
+private slots:
+    void readData();
+
+private:
+    GameClient(Room room, Player player);
+    static GameClient *_instance;
+    QTcpSocket *_socket;
+    Room _room;
+    int _connectionId;
+    Player _player;
+    QVector<HeroModel> _otherHeros;
+
+};
+
+
+#endif // GAMECLIENT_H

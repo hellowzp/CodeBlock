@@ -1,0 +1,42 @@
+#ifndef OPPONENTREAL_H
+#define OPPONENTREAL_H
+
+#include <QThread>
+#include "opponent.h"
+class OpponentReal: public QThread, public Opponent
+{
+    Q_OBJECT
+
+public:
+    OpponentReal(int type, int id, const int &x, const int &y, int healthPercentage);
+
+    void activate();
+    void deactivate();
+
+    void redirectTo(int x, int y);
+    bool makeInjure(int value);
+    void setWorld(WorldView *world);
+
+
+signals:
+    void positionChanged();
+    void opponentMoved(int id, int x, int y);
+public slots:
+    void refreshPosition();
+
+
+private:
+
+    void run();
+
+    WorldView *_world;
+
+    WorldPathFinder _finder;
+    QMutex _pathFindingLocker;
+
+    const int _totalHealth = 1000;
+    int _currentHealth = 1000;
+    int _speed = 5;
+};
+
+#endif // OPPONENTREAL_H

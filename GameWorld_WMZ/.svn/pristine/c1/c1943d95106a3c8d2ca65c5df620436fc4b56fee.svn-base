@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/world">
+        <file>pig.jpg</file>
+        <file>Pig_lactation.jpg</file>
+        <file>angry-bird-icon.png</file>
+        <file>energy-icon.png</file>
+        <file>Pig-icon.png</file>
+        <file>world1.jpg</file>
+        <file>angry-bird-green-icon.png</file>
+        <file>angry-bird-yellow-icon.png</file>
+        <file>armor-icon.png</file>
+        <file>magic-icon.png</file>
+        <file>sword-icon.png</file>
+        <file>boot-icon.png</file>
+        <file>world2.png</file>
+        <file>world3.png</file>
+    </qresource>
+</RCC>

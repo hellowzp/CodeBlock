@@ -1,0 +1,25 @@
+CC=gcc
+
+CFLAGS= -Wall
+MYSQL =$(mysql_config --cflags --libs)
+
+TCP = -L./ -Wl,-rpath=./ -ltcp
+all:client1 client2 client3 client4 libtcp.so
+	
+server: gateway.c DataServer.c D_list.c saveindb.c libtcp.so
+	$(CC) -o server gateway.c tcpsocket.c DataServer.c D_list.c saveindb.c -lpthread $(MYSQL) $(TCP)
+
+
+client1: client1.c tcpsocket.c
+	$(CC) $(CFLAGS) client1.c tcpsocket.c -o client1
+client2:client_app.c tcpsocket.c
+	$(CC) $(CFLAGS) client_app.c tcpsocket.c -o client2
+client3:client_app1.c tcpsocket.c
+	$(CC) $(CFLAGS) client_app1.c tcpsocket.c -o client3
+client4:client_http.c tcpsocket.c
+	$(CC) $(CFLAGS) client_http.c tcpsocket.c -o client4
+tcpsocket.o: tcpsocket.c
+	$(CC) -fPIC -c tcpsocket.c
+libtcp.so: tcpsocket.o
+	$(CC) -shared -o libtcp.so tcpsocket.o
+

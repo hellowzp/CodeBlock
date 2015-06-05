@@ -1,0 +1,1 @@
+The Transmission Control Protocol (TCP) is one of the two original core protocols of the Internet protocol suite (IP), and is so common that the entire suite is often called TCP/IP. TCP provides reliable, ordered, error-checked delivery of a stream of octets between programs running on computers connected to an intranet or the public Internet.

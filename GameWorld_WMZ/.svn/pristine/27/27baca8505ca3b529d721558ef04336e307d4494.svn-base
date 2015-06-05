@@ -1,0 +1,167 @@
+#include "hero.h"
+#include <iostream>
+#include "mainwindow.h"
+#include <QTransform>
+#include "opponent.h"
+#include <QApplication>
+
+
+Hero::Hero(int role, int id, int x, int y, int healthPercentage, int magicPercentage):Tile(x, y, 0)
+{
+
+    this->_id = id;
+    this->_role = role;
+
+    this->_healthValue = healthPercentage * _totalHealth / 100;
+    this->_magicValue = magicPercentage * _totalMagic / 100;
+
+    this->_healthBar = new StatusBar(StatusBar::HealthBar, this);
+    this->_healthBar->setTransform(QTransform().translate(0, -12));
+    this->_healthBar->setPercentage(healthPercentage);
+    this->_magicBar = new StatusBar(StatusBar::MagicBar, this);
+    this->_magicBar->setTransform(QTransform().translate(0, -5));
+    this->_magicBar->setPercentage(magicPercentage);
+
+    this->faceToDirection(3);
+    this->setPos(this->getXPos() * SCALE_FACTOR, this->getYPos() * SCALE_FACTOR);
+    QObject::connect(this, SIGNAL(needToMove()), this, SLOT(moveOneStep()));
+
+}
+
+void Hero::run(){
+
+    while (true) {
+
+        this->msleep(100 + 1000 / _speed);
+        emit needToMove();
+    }
+
+
+}
+
+void Hero::faceToDirection(int d) {
+
+    this->_facingDir = d;
+
+    switch (_facingDir) {
+    case 1:
+        this->setPixmap(QPixmap(":/world/angry-bird-icon.png").transformed(QTransform().rotate(270)));
+        break;
+    case 2:
+        this->setPixmap(QPixmap(":/world/angry-bird-icon.png").transformed(QTransform().rotate(315)));
+        break;
+    case 3:
+        this->setPixmap(QPixmap(":/world/angry-bird-icon.png").transformed(QTransform().rotate(0)));
+        break;
+    case 4:
+        this->setPixmap(QPixmap(":/world/angry-bird-icon.png").transformed(QTransform().rotate(45)));;
+        break;
+    case 5:
+        this->setPixmap(QPixmap(":/world/angry-bird-icon.png").transformed(QTransform().rotate(90)));
+        break;
+    case 6:
+        this->setPixmap(QPixmap(":/world/angry-bird-icon.png").transformed(QTransform().rotate(135)));
+        break;
+    case 7:
+        this->setPixmap(QPixmap(":/world/angry-bird-icon.png").transformed(QTransform().rotate(180)));
+        break;
+    case 8:
+        this->setPixmap(QPixmap(":/world/angry-bird-icon.png").transformed(QTransform().rotate(225)));
+        break;
+    default:
+        break;
+    }
+}
+
+
+
+void Hero::startMoving(){
+
+    this->start();
+}
+
+void Hero::stopMoving(){
+
+    this->terminate();
+
+    emit heroMovingStoped(_id);  //to game client
+    emit needToRepathOpponents(); // to world view
+}
+
+void Hero::setWorld(WorldView *world)
+{
+    this->_world = world;
+    this->_magic.setWorld(world);
+}
+
+void Hero::releaseMagicAt(int x, int y)
+{
+    this->_magic.releaseAt(x, y);
+}
+
+int Hero::getHealthPercentage()
+{
+    return _healthValue * 100 / _totalHealth;
+}
+
+int Hero::getMagicPercentage() {
+
+    return _magicValue * 100 / _totalMagic;
+}
+
+
+void Hero::attractOpponents()
+{
+    for (Opponent *op : this->_world->_opponents) {
+        op->redirectTo(this->getXPos(), this->getYPos());
+    }
+}
+
+void Hero::moveOneStep() {
+
+    switch (_facingDir) {
+    case 1:
+        this->moveToPoint(this->getXPos(), this->getYPos() - 1);
+        break;
+    case 2:
+        this->moveToPoint(this->getXPos() + 1, this->getYPos() - 1);
+        break;
+    case 3:
+        this->moveToPoint(this->getXPos() + 1, this->getYPos());
+        break;
+    case 4:
+        this->moveToPoint(this->getXPos() + 1, this->getYPos() + 1);
+        break;
+    case 5:
+        this->moveToPoint(this->getXPos(), this->getYPos() + 1);
+        break;
+    case 6:
+        this->moveToPoint(this->getXPos() - 1, this->getYPos() + 1);
+        break;
+    case 7:
+        this->moveToPoint(this->getXPos() - 1, this->getYPos());
+        break;
+    case 8:
+        this->moveToPoint(this->getXPos() - 1, this->getYPos() - 1);
+        break;
+    default:
+        break;
+    }
+}
+
+
+void Hero::moveToPoint(int x, int y) {
+
+    this->setXPos(x);
+    this->setYPos(y);
+    this->setPos(this->getXPos() * SCALE_FACTOR, this->getYPos() * SCALE_FACTOR);
+
+    emit heroMoved(_id, x, y); // to game client
+
+}
+
+
+
+
+
+

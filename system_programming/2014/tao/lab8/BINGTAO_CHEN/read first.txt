@@ -1,0 +1,2 @@
+the program function is type in the filename in client ,then 
+the client will send the file with same name to server.
