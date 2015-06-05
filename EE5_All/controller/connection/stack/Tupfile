@@ -1,0 +1,2 @@
+:stack.c mqtt_test_stack.c |> gcc stack.c mqtt_test_stack.c -DDEBUG -Wall -Wextra -std=c99 -lrt -o mqtt_test_stack.out |>mqtt_test_stack.out
+: mqtt_test_stack.out |> valgrind ./mqtt_test_stack.out  |> 

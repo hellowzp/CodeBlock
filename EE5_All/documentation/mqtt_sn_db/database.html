@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Database</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="js/dynamic.js"></script>
+
+	</head>
+	<body>
+		<h1>Database Development</h1>
+		
+		<h2>Introduction</h2>
+		
+		<p>The core of the project is to collect data. Storing this data in a reliable way is
+		very important. To do so in RAM is a good option but it wouldn't make sense not
+		to store it in a non volatile way. Writing it to files it tedious and difficult. The
+		best and fastest solution is to write it to a database. This database will be
+		implemented on the server running Linux. It should be light wait, fast and
+		portable. These factors will determine the choice of database. All the functions
+		to access this database will be implemented in a header file to make it as easy
+		as possible to access it in a save way also the program parameters will be
+		stored in this way</p>
+
+		<h2>Specific requirements</h2>
+
+		<p>The database will store the complete traffic of the network. It will implement 
+		a combination between an MQTT-SN gateway and a MQTT-SN sever. It is very important 
+		that the database itself never gets corrupted. This will require special attention. 
+		This means that even if the user intends to break or even change the database, it will not break. 
+		</p>
+
+		<p>The user interface (programming interface) should be clear and specified based 
+		on the needs of MQTT-SN. This will allow quick development of the rest of the program. 
+		A good efficiency in terms of the number of calls needed to complete a task, 
+		the processing power required, the memory required and so on are important 
+		factors in the development of this code</p>
+
+		<h2>Choosing the database</h2>
+
+		<h3>Requirements of the database</h3>
+
+		<p>The database should incorporate all of the following requirements:
+
+			<ul>
+				<li>Lightweight: the program should use minimal processing power and
+				memory</li>
+				<li>Fast: the data should be fast to access</li>
+				<li>Portable: on other systems the database should work as well</li>
+				<li>Scalable: when lots of data is processed it should run smoothly</li>
+				<li>C access: accessing the database in C should be possible</li>
+				<li>SQL access: using SQL to access the database is a benefit</li>
+			</ul>
+
+		</p>
+
+		<h3>Options</h3>
+
+		<p>There are a lot of options to choose from for a database. A complete list of most
+		options can be found here: Linuxfinances.info the option we choose Sqlite3. The
+		main reasons are why we choose this implementation are: </br>
+
+			<ul>
+				<li>We have experience using it in our team</li>
+				<li>The implementation is very light weight</li>
+				<li>The source code is less then 1Mb</li>
+				<li>It works across different platforms, even Java</li>
+				<li>It is free and is very well documented</li>
+				<li>The where very good tutorials and examples at this site</li>
+				<li>There is header file to use it in C</li>
+				<li>You do not need C++ to setup the database</li>
+				<li>The implementation is very clear and easy</li>
+			</ul>
+		</p>
+		
+		<h2>Defining the outlines of the task</h2>
+
+		<p>It is really important that ALL the data is stored in the database. It should be
+		possible to store every event. In this way good analysis are possible. The
+		complete management en access of the database must go through the provided
+		interface. In this way no corrupt data can enter the database. This implies that
+		all the functions to implement MQTT should provided.</p>
+
+		<p>The structure of the network is the first and most important thing to consider.
+		Therefore a definition of the different parts is in order.</br>
+
+			<ul>
+				<li>Sensor: a sensor is a device of chip that measures something and returns
+				data, the data will only flow from the sensor to the next device. Sending
+				information is sometimes possible to configure the sensor. This sensor it
+				the input of the network. A user interface is also an input and can be
+				considered a sensor. The data send to the sensor is only to configure its
+				working and not to work as an actuator</li>
+				
+				<li>Actuator: an actuator is a device that will only receive data and act on that data. Some form of feedback is possible. The feedback however is only 
+				about the state of the actuator and not about the surrounding.
+				End node: and end node is a device that has sensors and/or actuators. It is
+				capable of 2 way communication with the network. No other end nodes can
+				connect to an end node.</li>
+				
+				<li>Router: a router can have sensor and actuators but has to be able to
+				connect to multiple Routers/end nodes at the same time and relay a
+				message.</li>	
+				
+				<li>Network Coordinator: this device starts the network and determines the
+				network configuration. It has the same properties as a router</li>
+			</ul>
+		</p>
+
+		<p>These are all devices and have the same properties. These properties are: They were all first connected to the network at a certain date, they can all be active or in-active. This means it is possible that a device is connected to the network	but its parent will not call the function to use the child. This is really useful to have less traffic and to use less processing time resources. The first table of the database will contain all of devices.</p>
+
+		<h2>The database structure</h2>
+
+		<p>First of all a good database structure is needed to store al the data. a lot of the complexity of the project will be in this database. By providing convinient functions in a library the database becomes a very good starting point for every MSTT-SN implementation. This is a great benifit.</p>
+
+		<div id="db_layout">
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">DEVICE</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>UINT32_T</td><td>device_id</td>
+					</tr>
+					<tr>
+						<td>VARCHAR(25)</td><td>client_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>size</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>added_on</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>valid</td>
+					</tr>
+				</tbody>
+			</table>
+			
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">TOPIC</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>UINT32_T</td><td>topic_id</td>
+					</tr>
+					<tr>
+						<td>TEXT</td><td>name</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>added_on</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>parent_topic</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>created_by</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>valid</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>predefined</td>
+					</tr>
+					<tr>
+						<td>UINT16_T</td><td>predefined_topic_id</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">WILL</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>UINT32_T</td><td>will_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>device_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>topic_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>message_id</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>valid</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>qos</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>added_on</td>
+					</tr>
+                    <tr>
+                        <td>UINT8_T</td><td>incompleet</td>
+                    </tr>
+                    <tr>
+                    	<td>UINT8_T</td><td>retain</td>
+                    <tr>
+				</tbody>
+			</table>
+
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">TOPIC_DEVICE</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>UINT32_T</td><td>topic_device_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>device_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>topic_id</td>
+					</tr>
+					<tr>
+						<td>UINT16_T</td><td>short_topic_id</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>valid</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>send_messages</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>qos</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">CONNECT</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>UINT32_T</td><td>connect_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>device_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>duration</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>valid</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>added_on</td>
+					</tr>
+					<tr>
+						<td>UINT64_T</td><td>address</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>clean</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>awake</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">MESSAGE_DEVICE</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>UINT32_T</td><td>message_device_id</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>to_database</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>device_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>message_id</td>
+					</tr>
+					<tr>
+						<td>UINT16_T</td><td>external_message_id</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>qos</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>state</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>valid</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>last_change</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>added_on</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">MESSAGE</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>UINT32_T</td><td>message_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>topic_id</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>added_by</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>size</td>
+					</tr>
+					<tr>
+						<td>BLOB</td><td>data</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>added_on</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>retain</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>valid</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<h3>The inner working</h3>
+
+		<p>To explane the inner working of the database, all the posible scenaro's will be considered. By doing this, the whole working will be clear. This documentation is written before the actual implementation. This ensures clean and readable code. The function names and flow of the program will be as clear as posible.</p>
+
+		<p>The folowing chapter will folow the message types as specefied in <a href="http://mqtt.org/new/wp-content/uploads/2009/06/MQTT-SN_spec_v1.2.pdf">the mqtt-sn specification</a>. There will be a log table that logs all the messages, all messages will be stored in there if debugging is enabled. This will not be discussed in the following chapters.</p>
+
+		<ol>
+			<h4><li>ADVERTISE</li></h4>
+			
+			<p>This message will have no reccord in the database</p>
+
+			<h4><li>SEARCHGW</li></h4>
+
+			<p>This message will have no reccord in the database</p>
+
+			<h4><li>GWINFO</li></h4>
+
+			<p>This message will have no reccord in the database</p>
+
+			<h4><li>CONNECT</li></h4>
+
+			<p>This message will try to connect a client to the database. The address of the device will be passed allong with the subscribtion. When a connect message is called, the function <span class="function">UINT32_T db_connect(UINT64_T address, char* message_client_id, TIME_T receive_time, TIME_T duration, UINT8_T clean, UINT32_T return_client_id)</span> will return the device_id, for more info, please read the interface. The client id will be used to determine if their is an open connection with the device.</p>
+
+			<p>The will flag in the connect will not be stored in the database. If an unexpected reset ocurs and this information is lost, this will be of no concequence. The clean session flag is very important. If the clean session flag is set, the will topic and message of the previous session will be cleared and all the messages that needed to be send to this device will be cleared. By default all the subscribtions of the device will be valid when it connects again. When the clean session flag is set, al of these subscribtions will be deleted. To do this the internal function <span class="function">UINT32_T db_clean_session(UINT32_T device_id)</span> will be called.</p>
+
+			<p>With each connect message must be check weather or not it is needed to send information from a subscribed subject or from an old session. This needs to be done after the connection is established</p>
+
+			<h4><li>CONNACK</li></h4>
+
+			<p>This message will have no reccord in the database. This packet will be send after the will message is received.</p>
+
+			<h4><li>WILLTOPICREQ</li></h4>
+
+			<p>This message will have no reccord in the database</p>
+
+			<h4><li>WILLTOPIC</li></h4>
+
+			<p>The will topic will be stored in the a new entry in the will table. The device to wich this will topic referes will also be set. If the conneciton to this device is lost, the appropiate will messages can be found. Every device can have only 1 will message or none at all. If the QoS is set to 1 or 2 then the QoS id will also be set in this will entry. In this way the appropriate action can be taken regarding the receiving of the will message. If the device disconnect unexpected the function <span class="function">UINT32_T db_disconnect(UINT64_T device_id, UINT16_T sleep, UINT8_T unexpected)</span> will be called with the flag "unecpected". This will trigger the database to place the appropriate messages in the output queue.</p>
+
+			<h4><li>WILLMSGREQ</li></h4>
+
+			<p>This message will have no reccor in the database</p>
+
+			<h4><li>WILLMSG</li></h4>
+
+			<p>The will message will be handled by the function <span class="function">UINT32_T db_set_will_message(UINT64_T address, UINT32_T length, char* message)</span>. First the will topic and QoS for the device will be retreaved. To do this the internal function <span class="function">UINT32_T db_get_will_topic_device(UINT32_T device, UINT32_T* topic_id, UINT8_T* QoS)</span> will be called. Then the message will be registered to this topic. To do this the function <span class="function">UINT32_T db_publish(UINT32_T topic_id, UINT8_T duplicate, UINT8_T QoS, UINT16_T message_id, UINT32_T length, char* message, UINT8_T publish)</span> is called. The message id of the will message will always be 0!</p>
+
+			<h4><li>REGISTER</li></h4>
+
+			<p>The register message is send by the client to the server to request to topic id of a topic. The server wil return the lowest 16 bit of the actual topic id. To get this information the function <span class="function">UINT32_T db_get_topic_id(UINT64_T address, char* topic, UINT16_T* topic_id)</span> must be called. The topic id is specific for each device.</p>
+
+			<h4><li>REGACK</li></h4>
+
+			<p>This message will not be recorded in the database.</p>
+
+			<h4><li>PUBLISH</li></h4>
+
+			<p>The message will be published to a topic according the QoS of the connection. The DUP flag will not be concidered. Every publish will be considered a valid and unique message. To publish a message, the message should be passed to the function <span class="function">UINT32_T db_message_in(message* message, UINT32_T topic_id, UINT16_T extern_message_id</span>. If the QoS is higher than 1, the function <span class="function">UINT32_T db_message_in_next_state(message* message)</span> needs to be called to go to the next state of the message.</p>
+
+			<h4><li>PUBACK</li></h4>
+
+			<p>This message will not be recorded in the database. Call the function <span class="function">UINT32_T db_message_in_next_state(message* message)</span> to sete the next state.</p>
+
+			<h4><li>PUBREC</li></h4>
+
+			<p>This message will not be recorded in the database. Call the function <span class="function">UINT32_T db_message_in_next_state(message* message)</span> to sete the next state.</p>
+
+			<h4><li>PUBREL</li></h4>
+
+			<p>This message will not be recorded in the database. Call the function <span class="function">UINT32_T db_message_in_next_state(message* message)</span> to sete the next state.</p>
+
+			<h4><li>PUBCOMP</li></h4>
+
+			<p>This message will not be recorded in the database. Call the function <span class="function">UINT32_T db_message_in_next_state(message* message)</span> to sete the next state.</p>
+
+			<h4><li>SUBSCRIBE</li></h4>
+
+			<p>This message will signal the database that a device wants to listen to messages on this topic. The subscribtion will be done with the function <span class="function">UINT32_T db_subscribe(UINT64_T address, UINT8_T qos, UINT8_T topic_id_type, UINT16_T extern_message_id, UINT32_T topic_length, void* topic)</span>. the topic type will be defi1ned by topic_id_type. The meaning of thic an be found on page 15.</p>
+			<ul>
+				<li>ob00: topic name</li>
+				<li>0b01: pre-defined topic id</li>
+				<li>0b10: short topic id</li>
+				<li>0b11: reserved</li>
+			</ul>
+
+			<p>Basic on this the topic will be converted. To do this, a look up table can be used.
+			</p>
+
+			<h4><li>SUBACK</li></h4>
+
+			<p>This message will not be stored in the database. It will contain the QoS granted to the device. With the function <span class="function">UINT32_T db_get_topic_id(UINT64_T address, char* topic, UINT16_T* topic_id)</span> the topic_id can be retreved.</p>
+
+			<h4><li>UNSUBSCRIBE</li></h4>
+
+			<p>This message is send to unsubscribe a client, it the client is not subscribed, no error will be throw. To unsubscribe the function <span class="function">UINT32_T db_unsubscribe(UINT64_T address, UINT8_T topic_id_type, UINT16_T extern_message_id, UINT32_T topic_length, void* topic) must be called.</p>
+
+			<h4><li>PINGREQ</li></h4>
+
+			<p>This message will not be stored in the database.</p>
+
+			<h4><li>PINGRESP</li></h4>
+
+			<p>This message will not be stored in the database</p>
+
+			<h4><li>DISCONNECT</li></h4>
+
+			<p>This message will be used to disconnect a client or to go to sleep. This can be done with the function: will message. If the device disconnect unexpected the function <span class="function">UINT32_T db_disconnect(UINT64_T device_id, UINT16_T sleep, UINT8_T unexpected)</span>. If the device does not wish to sleep, the sleep parameter should be 0.</p>
+
+			<h4><li>WILLTOPICUPD</li></h4>
+
+			<p>This message will update the will topic. The previous will message will be removed if the next is compleetly set. With the function <span class="function">UINT32_T db_will_topic_update(UINT8_T retain, UINT8_T QoS, void* will_topic, UINT32_T will_topic_length</span> the will topic can be changed. An empty message will delete the old topic. Correction: the will topic and message update will be done with the same function: db_will_topic. This function wil automaticly update the will topic and message if there is already one set.</p>
+
+			<h4><li>WILLMSGUPD</li></h4>
+
+			<p><span class="function">UINT32_T db_will_message_update(UINT64_T address, UINT32_T length, char* message)</span> can be used to set the new will message.</p>
+
+			<h4><li>WILLTOPICRESP</li></h4>
+
+			<p>This message will not be stored in the database.</p>
+
+			<h4><li>WILLMSGRESP</li></h4>
+
+			<p>This message will not be stored in the database</p>
+
+		</ol>
+
+		<h3>Error</h3>
+
+		<p>Error handling in a big program is important tot do so, 1 enum will be used. Every function will return the error code as specified in here. If nothing went wrong 0 will be returned.</p>
+
+		<ol id="ERROR_CODE">
+			<li>UNSPECIFIED_ERROR</li>
+			<li>ADDRESS_ALREADY_USED</li>
+			<li>DATABASE_ERROR</li>
+			<li>NO_MATCH_FOUND</li>
+			<li>DEVICE_NOT_FOUNT</li>
+		</ol>
+
+		<p>To make the error codes human readable, the following list will be used. 0 means nothing was wrong</p>
+
+		<ol id="ERROR_STRING">
+			<li>The error was not specified, general error.</li>
+			<li>Request to register a device with an address that is already in use. Conflict needs to be resolved.</li>
+			<li>When using the databa*e a database specific error occured. Please enable a higher debug mode to display the error or use the SQLite error functions.</li>
+			<li>When searching the database for a match on the specified parameters, no information was found.</li>
+			<li>There was a request for a information concerning a certain device, but, based on the provided information, the divice could not be found. This is possible when the information is or when a device disconnected.</li>
+		</ol>
+
+		<h3>The database interface</h3>
+
+		<p>The interface to the database is very imporant. The explanation of every funciton will be explaned here.</p>
+
+		<p>Very often a lot of devices needed to be send a certain message if an event happens. There are 3 ways to do so. The first is a callback function. In this case this is dificult because in some cases the respons of the function is needed to complete a process after which the messages need to be send. A callback function will attempt to send this message even before this step is completed. The second way is to return a struct containing all the information for sending the messages. This places the responsibility compleetly by the user for sending the messages. However, it is often needed that the database knows that the message is send. A good way to make this more easy is for the database to keep a record of the messages that need to be send. If the user sends de message and returns an ok, the database can store this. Devices not connected with a QoS smaller than 1 will not receive the message.</p>
+
+		<p>The option where you provide some kind of itirator it will be hard to determine for wich message a confirmation is received. It is much easier to use some kind of buffer</p>
+
+		<ul>
+			<li>
+				<p><span class="function">UINT32_T db_connect(UINT64_T address, char* message_client_id, TIME_T receive_time, TIME_T duration, UINT8_T clean, UINT32_T return_client_id)</span></br></p>
+					<ol>
+						<li>The function will check if their is an excisting connection for this device, to do so the client_id of the device will be used. The function <span class="function">UINT32_T db_get_device_client_id( char* client_id, UINT32_T* device_id )</span> will be called to convert the client_id to the device_id. If there is no matching record NO_MATCH_FOUND will be returned. If their is already is a conneciton, the old connection will be closed. To do this the function will message. If the device disconnect unexpected the function <span class="function">UINT32_T db_disconnect(UINT64_T device_id, UINT16_T sleep, UINT8_T unexpected)</span> will be called. This will not trigger a will message. After this conneciton is closed, the function continues.</li>
+
+						<li>The function will now look weather or not the address provided is already used. If this address is already in used this means that some error occured or that another device lost unexpected his connection. The error code ADDRESS_ALREADY_USED will be returned. The function <span class="function">UINT32_T db_check_address_free(UINT64_T address)</span> will do this.</li>
+
+						<li>The next thing that will happen is to check weather or not the device already excists. If not, a new record for this device will be created. To do this the function <span class="function">UINT32_T db_add_device(char[24] cliend_id, UINT32_T added_on, char[24] software_version, UINT32_T parent_id, UINT8_T clean, UINT32_T* device_id)</span> will be used. If an error occurs the error code DATABASE_ERROR will be returned.</li>
+					</ol>
+			</li>
+
+			<li>
+				<p><span class="function">UINT32_T db_will_topic(UINT8_T retain, UINT8_T QoS, void* will_topic, UINT32_T will_topic_length</span></br>
+				This function will set the will topic as specified. If thei already was a will topic for the device, the function <span class="function">UINT32_T db_will_topic_update(UINT8_T retain, UINT8_T QoS, void* will_topic, UINT32_T will_topic_length</span> will be used.</p>
+			</li>
+
+			<li>
+				<p><span class="function">UINT32_T db_clear_will(UINT32_T device_id)</span></p>
+			</li>
+
+			<li>
+				<p><span class="function">UINT32_T db_message_out_next_state(message* current_message)</span></p>
+			</li>
+
+			<li>
+				<p><span class="function">UINT32_T db_get_message_out(message* next)</span></p>
+			</li>
+
+			<li>
+				will message. If the device disconnect unexpected the function <span class="function">UINT32_T db_disconnect(UINT64_T device_id, UINT16_T sleep, UINT8_T unexpected)</span></p>
+			</li>
+
+			<li>
+				<p><span class="function">UINT32_T db_get_topic_id(UINT64_T address, char* topic, UINT16_T* topic_id)</span>. First this function will search for the topic. If the topic is found the id will be set. If the topic is not found, it will be created by the function <span class="function">UINT32_T db_create_topic(char* name, UINT32_T added_on, UINT32_T address_device)</span> and the topic id will be returned.
+			</li>
+		</ul>
+
+
+		<h3>Underlying functions</h3>
+
+		<p>To make the database work, a lot of underlying functions are needed. The most important of these functions can be found here. These functions are not public. All functions will return 0 in case of succes or an error code. Read on to find the specifics for each funciton.</p>
+
+		<ul>
+			<li>
+				<p><span class="function">UINT32_T db_get_device_client_id( char* client_id, UINT32_T* device_id )</span>
+				When a client_id is provided, this function will look for the device id in the database. If there is not matching record NO_MATCH_FOUND will be returned.</p>
+			</li>
+				<p><span class="function">UINT32_T db_check_address_free(UINT64_T address)</span>
+				This function will check if the givin address is used. If it is not, OK will be returned (0). Else the ADDRESS_ALREADY_USED error will be returned</p>
+			<li>
+				<p><span class="function">UINT32_T db_add_device(char[24] cliend_id, UINT32_T added_on, char[24] software_version, UINT32_T parent_id, UINT8_T clean, UINT32_T* device_id)</span>
+				This function will try to add a device. If there is no parent or the value is unknown, set parent_id to 0. Do the same thing for the software_version. If an error occurs DATABASE_ERROR will be returned. The device_id will be returned. If the clean session flag is set, the fuction db_clean_session will be called to remove the information from the previous connection of this device. The clean flag will also be stored in the database. If the device disconnect, al the information about the connection will agian be removed by the db_clean_session function. The clean session will also close all open connections of this device. Call this function before adding the device. Do not depend on this functionality to close the connection. It is added for extra security.(</p>
+			</li>
+			<li>
+				<p><span class="function">UINT32_T db_clean_session(UINT32_T device_id)</span>. This function will clean up al the information concerning previous connections of this device. The information that will be altered:
+				<ul>
+					<li>QoS 2 or 1 messages that are not delivered to this device. The function <span class="function">db_clean_session_message_to_device(UINT32_T device_id)</span> will do this.</li>
+					<li>QoS publish message from this device that are not complete. The function <span class="function">db_clean_session_message_to_database(UINT32_T device_id)</span> will do this.</li>
+					<li>The will messages will be made invalid. The function <span class="function">db_clear_will(UINT32_T device_id)</span> will do this.</li>
+					<li>The subscribtions will be made invalig. The function <span class="function">db_clear_subscribe(UINT32_T device_id)</span> will do this.</li>
+					<li>Previous connections will be made invalid without sending a will message. The function <span class="function">db_disconnect(UINT32_T device_id)</span> will do this.</li>
+				</ul>
+			</li>
+			<li>
+				<p><span class="function">UINT32_T db_create_topic(char* name, UINT32_T added_on, UINT32_T address_device)</span>. This function will check if the function exists, to do this, it will parse the name on /. If the topic did already exist, the function will return without making any change and without giving an error code. If the topic does not exist, the function will get the device id based on the address. To: do this, the function <span class="function">UINT32_T db_get_device_by_adress(UINT64_T address, UINT32_T* device)</span> will be used. If this is finished and the device is found based on it's address, the topic will be created. If the device is not been found, the error DEVICE_NOT_FOUNT will be returned.
+			</li>
+
+			<li>
+				<p><span class="function">UINT32_T db_get_device_by_adress(UINT64_T address, UINT32_T* device)</span></p>
+			</li>
+		</ul>
+
+		<h3>The message output buffer</h3>
+
+		<p>This buffer will be used to store all the messages that need to be send. When the user askes it will give the user a pointer to a struct containing the message, the QoS, the address,... If the user has completed a step in the processing of the message, it will call a function that can register this in the database. If all of this is done, the database will free the message.</p>
+
+		<p>The first step wil be creating a new threat. This threat is responsable for storing the output messages. I will be build as a double linked list. In this list the struct will be stored containing al of the information needed to send a message. The struct will look al follows:</p>
+
+		<div id="db_layout">
+			<table>
+				<thead>
+					<tr>
+						<th colspan="2">struct Message</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>UINT64_T</td><td>address</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>message_device_id</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>QoS : 2</td>
+					</tr>
+					<tr>
+						<td>UINT8_T</td><td>State : 6</td>
+					</tr>
+					<tr>
+						<td>UINT32_T</td><td>length</td>
+					</tr>
+					<tr>
+						<td>void *</td><td>message</td>
+					</tr>
+					<tr>
+						<td colspan="2"> typedef as message</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<p>The struct will contain a lot of information needed to send the message:
+		<ul>
+			<li>The struct will contain the address of the device to wich the data needs te be send.</li>
+			<li>It will contain the Quality of Service for this message. In this way the user can see what he needs to do with the information. </li>
+			<li>To keep track of how far the message is in the process, the state field will be used. For every quality of service this state field can have a differen meaning.</li>
+			<li>The message id is used by the database to keep track of the message.</li>
+			<li>The message field will hold a pointer to the raw data of the message.</li>
+			<li>The length field will define how long the message is.</li>
+		</ul>
+		</p>
+
+		<p>The message needs to be considered read only data for the user. The user can use this data to send a message, after a stage is completed, the user needs to call the function: <span class="function">UINT32_T db_message_out_next_state(message* current_message)</span>. This function will make sure the message is set to the next state. If needed it will change the data in the database. If a message is complete, the message will be freed by this function. To get the next message of the output queue the function db_get_message_out needs te be called.</p>
+
+		<p>It is very important that the user follows the MQTT-SN specifications in detail for sending a message. To make sure the right sequence if followed, please read this documentation and protocol documentation.</p>
+
+		<ul>
+			<li>
+				<h4>QoS -1</h4>
+				<p>This quality of serves does not request for any feedback to the database. The user can just read the message and send it. If something goes wrong, no action needs to be taken. After completing the sending, call the db_message_out_next_state functio*n and the message will be removed from the queue. The state of a send message is 1</p>
+			</li>
+			<li>
+				<h4>QoS 0</h4>
+				<p>This quality of serves requeres the same action as QoS -1. This quality of serves does not request for any feedback to the database. The user can just read the message and send it. If something goes wrong, no action needs to be taken. After completing the sending, call the db_message_out_next_state functio*n and the message will be removed from the queue. The state of a send message is 1</p>
+			</li>
+			<li>
+				<h4>QoS 1</h4>
+				<p>The Qos requeres some different states to handle the dataflow correctly.</p>
+				<ol>
+					<li>Sending the message. When sending the message the user needs to register this by calling the output function. If a timer expires or the user reads a message where the state is 1 whitout remembering he has send this message before he has to act as if this is a retransmition of the message. The state of a send message is 1</li>
+
+					<li>Regestiring an puback. When a response is returned from the receiver, the user must call the db_message_out_next_state functio*n and the database will register that the message is send compleetly. The state of an acknowledged message is 2</li>
+				</ol>
+			</li>
+
+			<li>
+				<h4>QoS 2</h4>
+				<p>The Qos requeres a lot of states to make sure the dataflow is correct</p>
+				<ol>
+					<li>When the message is first published, the user needs to go to the next state. The external message id is used to specify which message this is. If the user sees the message is already send but not received he can send it again.</li>
+					<li>State 2 default to state 3</li>
+					<li>When the user receives the pub rec, the state will change to 3, their is no state 2! State to must default to state 3. The reason for this is easy, a state 2 represends an acknowledged and complete message for QoS 1. This is not the case for QoS 2 so state to is skiped to reduce the change of mistakes and to make coding easier.</li>
+					<li>The use now needs to send a pubrel message to release the message. When this is done, he needs to go to the next state. If a message has a state 3 on opening, the pubrel needs to be send again</li>
+					<li>A pubcomp signifies the end of the transfer. The delivery of the message is now complete. Don't forget to check the external_message_id in each step</li>
+				</ol>
+			</li>
+		</ul>
+	</body>
+</html>

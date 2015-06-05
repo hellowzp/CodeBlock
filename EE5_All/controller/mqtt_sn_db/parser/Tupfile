@@ -1,0 +1,1 @@
+: parser.c parser_test.c ../stack/stack.c |> gcc parser.c parser_test.c ../stack/stack.c -o parser.out |> parser.out

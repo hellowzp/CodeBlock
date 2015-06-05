@@ -1,0 +1,1 @@
+: mqtt_sn_db_test.c mqtt_sn_db.c prioritized_list/prioritized_list.c parser/parser.c stack/stack.c |> gcc mqtt_sn_db_test.c mqtt_sn_db.c prioritized_list/prioritized_list.c parser/parser.c stack/stack.c -DDEBUG -DLOCKING -Wall -Wextra -lpthread -l sqlite3 -o mqtt_sn_db.out |> mqtt_sn_db.out

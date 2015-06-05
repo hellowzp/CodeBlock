@@ -1,0 +1,28 @@
+@import url(https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,700);
+
+$gray_bg: rgb(240,240,240);
+$highlight: rgb(0,120,175);
+
+body{
+	margin: 0px auto;
+	padding: 0px;
+	
+	/*Font stuff*/
+	font-family: "Quattrocento Sans", Verdana, sans-serif;
+}
+
+span.highlight{
+	color: $highlight;
+}
+
+div.wrap{
+	margin: 0px auto;
+	width: 800px;
+}
+
+div.box{
+	padding: 20px 50px;
+	&:nth-child(even){
+		background: $gray_bg;
+	}
+}

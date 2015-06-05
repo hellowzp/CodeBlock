@@ -1,0 +1,1 @@
+: prioritized_list_test.c prioritized_list.c |>  gcc prioritized_list_test.c prioritized_list.c -l pthread -Wall -Wextra -DDEBUG -o  prioritized_list.out |>  prioritized_list.out

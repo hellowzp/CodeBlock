@@ -1,0 +1,2 @@
+: stack.c stack_test.c |> gcc stack.c stack_test.c -DDEBUG -Wall -Wextra -Werror -lrt -o stack.out |>stack.out
+: stack.out |> valgrind ./stack.out  |> 
