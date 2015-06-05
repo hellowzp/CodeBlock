@@ -1,9 +1,0 @@
-there are two file for this task.
-one is the the normal memory dump and the other one is its extended version
-
-1. for the standard memory dump, the start address and number of bytes are asked for input.
-
-2. for the extension, if no are argument is given, it works the same as the standard memory dump
-   once the start address and numbers of bytes are given as arguments, it will print without asking for input.
-   
-   e.g. " ./a.out 0x4001e6 -30 " will work fine.  (your address argument must be "0x......" format) 
