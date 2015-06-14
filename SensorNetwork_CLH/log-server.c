@@ -7,7 +7,7 @@
 #include <time.h>
 
 
-#define LOG_FIFO "/tmp/logFifo"
+#define LOG_FIFO "logFifo"
 #define MAX_BUF 1024
 
 int main()
@@ -29,7 +29,7 @@ int main()
 
     memset(buf, 0, sizeof(buf));
 	
-	fp_log = fopen("./gateway.log", "a");
+	fp_log = fopen("gateway.log", "a");
 	if(fp_log== NULL) 
 	{
 		printf("I couldn't open log_server for writing.\n");

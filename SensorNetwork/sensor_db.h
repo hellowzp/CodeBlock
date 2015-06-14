@@ -26,8 +26,8 @@
 #else
 #define HOST "localhost"
 #define DATABASE "sensor"
-#define USER "wang"
-#define PASSWORD "mysql"
+#define USER "root"
+#define PASSWORD "root"
 
 #endif
 

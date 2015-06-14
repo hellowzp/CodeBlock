@@ -1,0 +1,10 @@
+use sensor;
+
+DROP TABLE IF EXISTS WANG_ZHIPENG;
+
+create TABLE IF NOT EXISTS WANG_ZHIPENG
+	(Id INT PRIMARY KEY AUTO_INCREMENT,
+	sensor_id INT UNSIGNED, 
+	sensor_value DECIMAL(4,2), 
+	timestamp TIMESTAMP);
+

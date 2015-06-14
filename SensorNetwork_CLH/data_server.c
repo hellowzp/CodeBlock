@@ -32,7 +32,7 @@
 
 //attention: here for req 12
 #ifndef SET_QUEUE_SIZE
-#define SET_QUEUE_SIZE 30000
+#define SET_QUEUE_SIZE 100
 #endif
 
 //attention: here for req 11
@@ -99,9 +99,6 @@ int main( int argc, char *argv[] )
 /*****************************************************************************
 						variable initialization
 ***************************************************************************** */
-  // if no fifos, create 
-    if (stat(fifo_name, &st) != 0)
-    mkfifo(fifo_name, 0666);
 
         //tasks maxim number 
         sensor_malloc();
@@ -125,14 +122,17 @@ int main( int argc, char *argv[] )
 
 	   conn = mysql_init(NULL); 
 //for GT
-	mysql_real_connect(conn, "studev.groept.be", "a13_syssoft", "a13_syssoft", "a13_syssoft", 0, NULL, 0);
+//	mysql_real_connect(conn, "studev.groept.be", "a13_syssoft", "a13_syssoft", "a13_syssoft", 0, NULL, 0);
 //for my own
-	//mysql_real_connect(conn, "localhost", "root", "root", "xuemei", 0, NULL, 0);
-
+	printf("sql connection.. ***\n");
+	mysql_real_connect(conn, "localhost", "root", "root", "sensor", 0, NULL, 0);
+	printf("sql connected.. ***\n"); 
 
 /*****************************************************************************
 					Create	Multi-Thread & connection manager
 ***************************************************************************** */    
+    printf("init pool...\n");    
+
     //initial thread pool
     pool_init (THREADNUM);
  
@@ -140,12 +140,16 @@ int main( int argc, char *argv[] )
     server=tcp_passive_open(PORT_SENSOR);      
     fd_master=get_socket_descriptor(server);
     
+	       
+
+    
 	while(1)
 	{ 
-	  FD_ZERO(&readfd); 
-      //add fd into FD_SET
-	  FD_SET(fd_master,&readfd);
-
+		FD_ZERO(&readfd); 
+		//add fd into FD_SET
+		FD_SET(fd_master,&readfd); 
+	
+		
 //attention: here for req 8
 
       //multiplexing I/O,detect incoming connection	  
@@ -159,8 +163,10 @@ int main( int argc, char *argv[] )
 	  {	  		  	   	  
 	  	//print out connection information
 	        printf("\nConnection with master socket fd %d .",fd_master);	
-
-	        client = tcp_wait_for_connection( server);
+	        
+	        printf("server waiting for connection.. ***\n");    
+			client = tcp_wait_for_connection( server);
+			printf("new connection.. ***\n"); 
 
 		//add task to new worker
 	        pool_add_worker (thread_task_TCP_Con, client);  /////////

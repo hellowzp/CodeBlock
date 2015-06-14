@@ -148,9 +148,8 @@ int main(int argv, char* args[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	
 	if( access(FIFO_NAME,F_OK) != 0) {   //SEE MAN 2 ACCESS
-		perror("access fifo test");
+		printf("access fifo test: fifo doesn't exist, going to create a new one\n");
 		int ret = mkfifo(FIFO_NAME,S_IRWXU);
 		if(ret==-1) perror("mkfifo");
 	}
@@ -192,7 +191,11 @@ int main(int argv, char* args[]) {
 		}
 		
 		pthread_join(pth_tcp_con,&retStatus);			
-		printf("%s\n",(char*)retStatus);
+		printf("tcp connection thread terminated with status: %s\n",(char*)retStatus);
+		pthread_join(pth_tcp_con,&retStatus);			
+		printf("data management thread terminated with status: %s\n",(char*)retStatus);
+		pthread_join(pth_tcp_con,&retStatus);			
+		printf("staorage management thread terminated with status: %s\n",(char*)retStatus);
 		
 		
 	} else if (pid==0) {
@@ -431,14 +434,18 @@ void* data_manage(void* arg) {
 void* storage_manage(void* arg) {
 	DEBUG_PRINT("%s\n","mysql thread created..");
 	MYSQL* mysql;
-	int i = 5;
+	int i = 5; //AUTO-RECONNECTION
 	do{
 		mysql = init_connection(1);
-		sleep(60);
+		sleep(30);
 	}while(!mysql && --i);
 
-	if(!mysql) send_log_msg(fifo_fds,"mysql server connection failed");
-	else DEBUG_PRINT("%s\n","mysql connection created..");
+	if(!mysql) {
+		send_log_msg(fifo_fds,"mysql server connection failed");
+		exit(EXIT_FAILURE);
+	} else {
+		DEBUG_PRINT("%s\n","mysql connection created..");
+	}
 	
 	while(1) {
 		semaphore_p();
