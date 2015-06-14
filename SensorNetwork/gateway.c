@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/sem.h>
-
+#include <sys/wait.h>
 
 #include "config.h"
 #include "tcpsocket.h"
@@ -77,8 +77,7 @@ pthread_mutex_t list_mutex;
 pthread_mutex_t fifo_mutex;
 
 static int sem_id = 0;
-union semun
-{
+union semun {
 	int val;
 	struct semid_ds *buf;
 	unsigned short *arry;
@@ -124,6 +123,11 @@ int main(int argv, char* args[]) {
 	#endif */
 	
 	port = (int)strtol(args[1],NULL,10);  //server port
+	if(port <= 0 || port > 65535){
+       printf("invalid port\n");
+       exit(-2);
+    }
+    
 	cirque = QueueCreate();
 	sensor_array = list_alloc();
 	if(sensor_array) {
@@ -142,8 +146,7 @@ int main(int argv, char* args[]) {
 	fifo_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
 	
 	sem_id = semget((key_t)1234, 1, 0666 | IPC_CREAT);	
-	if(!set_semvalue())
-	{
+	if(!set_semvalue()) {
 		fprintf(stderr, "Failed to initialize semaphore\n");
 		exit(EXIT_FAILURE);
 	}
@@ -151,7 +154,10 @@ int main(int argv, char* args[]) {
 	if( access(FIFO_NAME,F_OK) != 0) {   //SEE MAN 2 ACCESS
 		printf("access fifo test: fifo doesn't exist, going to create a new one\n");
 		int ret = mkfifo(FIFO_NAME,S_IRWXU);
-		if(ret==-1) perror("mkfifo");
+		if(ret==-1){
+			perror("mkfifo");
+			exit(EXIT_FAILURE);
+		}
 	}
 	
 	pid_t pid = fork();
@@ -190,13 +196,14 @@ int main(int argv, char* args[]) {
 			exit(EXIT_FAILURE);
 		}
 		
+		waitpid(pid, NULL, 0);
+		
 		pthread_join(pth_tcp_con,&retStatus);			
 		printf("tcp connection thread terminated with status: %s\n",(char*)retStatus);
-		pthread_join(pth_tcp_con,&retStatus);			
+		pthread_join(pth_data_man,&retStatus);			
 		printf("data management thread terminated with status: %s\n",(char*)retStatus);
-		pthread_join(pth_tcp_con,&retStatus);			
+		pthread_join(pth_strg_man,&retStatus);			
 		printf("staorage management thread terminated with status: %s\n",(char*)retStatus);
-		
 		
 	} else if (pid==0) {
 		int cfds = open(FIFO_NAME, O_RDONLY);
@@ -217,7 +224,7 @@ int main(int argv, char* args[]) {
 			int bytes = read(cfds,buf,100);
 			if(bytes==-1) perror("reading fifo");
 			else if(bytes>0) write(log_fds,buf,bytes);
-			sleep(60);
+//			sleep(60);
 		}
 			
 	} else {

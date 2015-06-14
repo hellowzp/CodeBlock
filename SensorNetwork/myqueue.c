@@ -9,6 +9,10 @@
 
 #define POINTER_CHECK(ptr_to_check,fun) do{ if(ptr_to_check) { printf("%s() error: invalid parameter...\n",fun); return; } } while(0) 
 
+#ifndef SET_QUEUE_SIZE
+#define SET_QUEUE_SIZE 100
+#endif
+
 #ifndef MAIN
 extern const unsigned int QUEUE_DATA_SIZE;
 //extern pthread_mutex_t queue_mutex;
@@ -24,7 +28,6 @@ struct queue {
 	pthread_mutex_t mutex;
 	void* data;
 };
-
 
 Queue* QueueCreate() {
 	Queue *q = NULL;

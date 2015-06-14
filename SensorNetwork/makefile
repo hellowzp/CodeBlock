@@ -4,7 +4,7 @@ HDR = $(SRC:.c=.h) config.h
 MODULE = libmylist.so 
 
 CFLAGS = -Wall
-USER_LIB = /usr/lib
+SHARED_LIB = /usr/lib
 
 MYSQL_CFLAGS = -I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing -g -DNDEBUG
 MYSQL_LIBS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
@@ -12,33 +12,32 @@ MYSQL_LIBS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
 #MYSQL_CFLAGS := $(mysql_config --cflags)
 #MYSQL_LIBS := $(mysql_config --libs)
 
-#MYSQL_CFLAGS = 'mysql_config --cflags'
-#MYSQL_LIBS   = 'mysql_config --libs'
+.PHONY: all clean
 
 all : GATEWAY SENSOR1 SENSOR2 SENSOR3
 
 #build
 GATEWAY : gateway.c $(OBJ) $(MODULE)
-	gcc $^ -DDEBUG -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(USER_LIB) -lmylist -o $@.out
+	gcc $^ -DDEBUG -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHARED_LIB) -lmylist -o $@
 
 SENSOR1 : sensor_node.c tcpsocket.o
-	gcc $^ -DSET_ID=23 -o $@.out	
+	gcc $^ -DSET_ID=47 -o $@	
 
 SENSOR2 : sensor_node.c tcpsocket.o
-	gcc $^ -DSET_ID=47 -o $@.out
+	gcc $^ -DSET_ID=101 -o $@
 
 SENSOR3 : sensor_node.c tcpsocket.o
-	gcc $^ -DSET_ID=77 -o $@.out
+	gcc $^ -DSET_ID=777 -o $@
 
 #run
 server :
-	./GATEWAY.out 1234
+	./GATEWAY 1234
 client1 :
-	./SENSOR1.out 127.0.0.1 1234
+	./SENSOR1 127.0.0.1 1234
 client2 :
-	./SENSOR2.out 127.0.0.1 1234
+	./SENSOR2 127.0.0.1 1234
 client3 :
-	./SENSOR3.out 127.0.0.1 1234
+	./SENSOR3 127.0.0.1 1234
 
 $(OBJ) : $(SRC) $(HDR)
 
@@ -51,7 +50,7 @@ sensor_db.o : sensor_db.c sensor_db.h
 
 $(MODULE) : list.c list.h
 	gcc -fPIC -shared $^ -o $@ 
-	cp $@ $(USER_LIB)
+	cp libmylist.so $(SHARED_LIB)
 	sudo ldconfig
 
 clean :
@@ -62,6 +61,3 @@ clean :
 
 #gcc sensor_node.c tcpsocket.c -o sensor -DSET_ID=777
 #./sensor 127.0.0.1 1234 
-
-
-
