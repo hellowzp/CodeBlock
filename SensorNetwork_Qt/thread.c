@@ -26,15 +26,25 @@ void pool_init (int max_thread_num)
 	 }
 }
 
+<<<<<<< HEAD
 int pool_add_worker (void *(*task) (void *arg), void *arg)
 {
 	 CThread_worker *newworker=(CThread_worker *) malloc (sizeof (CThread_worker));
      newworker->task = task;
+=======
+int pool_add_worker (void *(*process) (void *arg), void *arg)
+{
+	 CThread_worker *newworker=(CThread_worker *) malloc (sizeof (CThread_worker));
+	 newworker->process = process;
+>>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 	 newworker->arg = arg;
 	 newworker->next = NULL;
 
 	 pthread_mutex_lock (&(pool->queue_lock));
+<<<<<<< HEAD
      //append task member
+=======
+>>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 	 CThread_worker *member = pool->queue_head;
 	 if(member!= NULL)
 	 {
@@ -116,7 +126,11 @@ void *thread_routine (void *arg)
 		 pool->queue_head = worker->next;
 		 pthread_mutex_unlock (&(pool->queue_lock));
 
+<<<<<<< HEAD
          (*(worker->task)) (worker->arg);
+=======
+		 (*(worker->process)) (worker->arg);
+>>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 		 free (worker);
 		 worker = NULL;
 	 }

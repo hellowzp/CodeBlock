@@ -20,10 +20,17 @@
 #define	PROTOCOL	IPPROTO_TCP 	// TCP protocol 
 
 typedef struct {
+<<<<<<< HEAD
   int sd;
   char *ip_addr;
   int port;   
   } MySocket;		// My definition of a socket: a socket descriptor, 
+=======
+    int sd;
+    char *ip_addr;
+    int port;
+} MySocket;		// My definition of a socket: a socket descriptor,
+>>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 			        // the IP address and port number of the PC hosting this socket 
 
 // private functions used for error checking

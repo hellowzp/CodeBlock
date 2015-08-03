@@ -39,6 +39,7 @@ char * sensorFileGeneration(int sensorID);
 int main( int argc, char *argv[] ) 
 {
 	  Socket client;
+<<<<<<< HEAD
 	  int ret,dataSample,MYPORT,off,fd,result,SET_ID;   //tcp_receive
 	  char *data;
 	  char SERVER_IP[24];
@@ -51,6 +52,16 @@ int main( int argc, char *argv[] )
 	    
 	  packet_ptr_t	sensor_packet_temp;
 	    
+=======
+      int ret,dataSample,MYPORT,off,fd,SET_ID;   //tcp_receive
+      char *data = (char *)malloc(sizeof(char)*BUFSIZE);
+	  char SERVER_IP[24];
+	  long int dataHigh=0;
+	  long int dataLow=0;
+	  srand( time( NULL ) );
+	  char * finalFile;
+	    	  	    
+>>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 //attention: here for req 4, two argments
       if(argc != 4)
       {
@@ -74,6 +85,7 @@ int main( int argc, char *argv[] )
          exit(-3);
       }
 
+<<<<<<< HEAD
 	finalFile=sensorFileGeneration(SET_ID%30);  //for testing:limit the sensor id from 0 to 29
 
 
@@ -145,6 +157,75 @@ int main( int argc, char *argv[] )
 	  free(data);
 	  close(fd);	  
 	  return 1;
+=======
+    // log<Sensor_ID>.msg file
+    finalFile=sensorFileGeneration(SET_ID%30);  //for testing:limit the sensor id from 0 to 29
+    fd = open( finalFile, O_CREAT | O_APPEND| O_WRONLY, S_IRWXU);
+    if ( fd == -1 ) {
+        #ifdef DEBUG
+        perror("File open failed: ");
+        #endif
+    }
+
+    // open TCP connection to the server; server is listening to SERVER_IP and PORT
+    client = tcp_active_open( MYPORT, SERVER_IP );
+
+    ret=1;
+    off=0;
+
+    while(ret>0 && off<OFF_NUM)
+	{ 
+        //generate data from sensors
+        dataSample=rand();            //generate 32 bits random number
+
+        dataHigh=SET_ID<<20;
+        dataLow=dataSample&1048575;   //Binary(number of 1: 20): 11111111111111111111-->Decimal:1048575
+        dataSample=dataHigh|dataLow;  //set the id of the sensor
+
+        printf("\ndata collected is %d\n",dataSample);
+
+        packet_ptr_t sensor_packet_temp = (packet_ptr_t)&dataSample;
+        printf("sensor id: %d sensor data id: %d \n",SET_ID,sensor_packet_temp->id);
+
+        // The C library function int sprintf(char *str, const char *format, ...)
+        // sends formatted output to a string pointed to, by str.
+        sprintf(data,"%d",dataSample);
+
+        tcp_send( client, (void *)data, strlen(data) );
+        printf("clent sent tcp data succeed: \%s !", data);
+
+//        // get reply from server
+//        printf("\nanswer from server: ");
+//        ret = tcp_receive (client, buffer, BUFSIZE);
+//        printf("%s\n", buffer);
+
+        char dataToFile[200];
+        sprintf(dataToFile,"\nSensor id: %ld, temperature value: %ld, time: %ld\n",(long int)sensor_packet_temp->id,(long int)sensor_packet_temp->value,(long int)time(NULL));
+
+        //attention: here for req 6
+        ret = write(fd, dataToFile, sizeof(dataToFile));
+
+        if ( ret == -1 )
+        {
+            #ifdef DEBUG
+            perror("File write failed: ");
+            #endif
+        } else {
+            printf("sensor data written to file: length %d %s\n", ret, dataToFile);
+        }
+
+        sleep(SET_FREQUENCY);
+
+        off++;
+	
+    }
+	
+    printf("sensor client connection closed..\n");
+    tcp_close( &client );
+    free(data);
+    close(fd);
+    return 1;
+>>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 }
 
 //for generating names of the log<Sensor_ID>.msg files in the specific folder

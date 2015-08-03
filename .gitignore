@@ -7,6 +7,9 @@
 *.o
 *.obj
 
+# editor backup file
+*~
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -29,3 +32,12 @@
 *.exe
 *.out
 *.app
+
+# Sensor Network
+**/data-generated/
+*.msg
+*.log
+**/server
+**/log
+**/sensorNode
+

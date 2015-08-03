@@ -1,9 +1,5 @@
-#ifndef MYQUEUE_
-#define MYQUEUE_
-
-#ifndef SET_QUEUE_SIZE
-#define SET_QUEUE_SIZE 10
-#endif
+#ifndef MYQUEUE_H
+#define MYQUEUE_H
 
 typedef struct queue Queue;
 
@@ -41,4 +37,4 @@ void* QueueTop(Queue* queue);
 void Dequeue(Queue* queue);
 
 
-#endif //MYQUEUE_
+#endif //MYQUEUE_H

@@ -16,8 +16,13 @@ typedef struct clientechoarg
 //structure for task in thread
 typedef struct worker
 {
+<<<<<<< HEAD
   void *(*task) (void *arg);  //task
   void *arg;                    //argument for function
+=======
+  void *(*process) (void *arg);  //task
+  void *arg;                     //argument for function
+>>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
   struct worker *next;          
 } CThread_worker;
 
@@ -42,10 +47,16 @@ typedef struct
 
 extern CThread_pool *pool;
 
+<<<<<<< HEAD
 
 void pool_init (int max_thread_num);                                     //initialize thread pool
 int pool_add_worker(void *(*process) (void *arg), void *arg);            //add thread tasks in pool
 int pool_destroy();  													//destroy pool
+=======
+void pool_init (int max_thread_num);                             //initialize thread pool
+int pool_add_worker(void *(*process) (void *arg), void *arg);    //add thread tasks in pool
+int pool_destroy();                                              //destroy pool
+>>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 void * thread_routine(void *arg);                                                      
 
 

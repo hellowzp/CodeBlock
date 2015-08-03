@@ -1,0 +1,306 @@
+ 
+/*
+
+int str_split( char* str, char del,char*** retArray) {
+	if(!str) {
+		printf("%s\n","str_split(): invalid parameter...");
+		return -1;
+	}
+	int len = str_length(str);
+	int i,j=0;
+	int index[len];  //save the index of delimiters
+	for(i=0; i<len; i++) {
+		if(*(str+i)==del) {
+			index[j]=i;
+			j++;
+		}
+	}
+
+	char** str_array = NULL;
+	int size = (j+1)*sizeof(*str_array);  //one extra space for indicating the end in order to free later
+	str_array = (char**)malloc(size);
+	//printf("%d %d\n",j,size);
+	for(i=0; i<j; i++) {  //fill the array row by row
+		int k;
+		if(i==0) {
+			*(str_array+i) = (char*)malloc(index[i]+1);
+			for(k=0; k<index[i]; k++) {
+				*(*(str_array+i)+k) = *(str+k);
+			}
+			*(*(str_array+i)+k) = 0; //terminator \0
+			//printf("%s\n",*(str_array+i));
+		} else {
+			*(str_array+i) = (char*)malloc(index[i]-index[i-1]);
+			for(k=0; k<index[i]-index[i-1]-1; k++) {
+				*(*(str_array+i)+k) = *(str + index[i-1] + k +1);
+			}
+			*(*(str_array+i)+k) = 0; //terminator \0
+			//printf("%s\n",*(str_array+i));
+		}
+	}
+	*(str_array+j) = 0;
+	*retArray = str_array;
+	return j;
+}
+
+char* str_multi_cat(int num,  char del, ...) {
+	char* str = (char*)malloc(MAX_FRAME_SIZE);
+    va_list argmt;
+    va_start(argmt,del);
+    int i,j,index=0;
+    for(i=0; i<num; i++) {
+        char* sf = (char *)va_arg(argmt,char*);
+        int len = str_length(sf);
+        if(len<=0) {  //empty(0) or NULL(-1)
+            //first complete the current loop then point to the new position
+            // cuz each time index points to the beginning position of the loop
+            #ifdef ALLOW_EMPTY_FIELD
+            *(str+index) = del;
+            index++;
+            #else
+            printf("%s\n","str_multi_cat(): empty sensor field not allowed.");
+            #endif
+        } else {
+			for(j=0; j<len; j++) {
+				*(str+index+j) = *(sf+j);
+			}
+			*(str+index+len) = del;
+			index += (len+1);
+        }
+	}
+    va_end(argmt);
+    *(str+index) = 0;
+    return str;
+}
+
+//can be used to convert the waspmote sensor payload to map
+map_ptr_t str_to_map( char* str, char fdel, char sdel) {
+    char** payload = NULL;
+    int fields = str_split(str,fdel,&payload);  //frame delimiter
+    //printf("%p %s\n",*(payload),*(payload+1));
+    if(fields<=0) {
+        printf("%s\n","str_to_map(): invalid parameter...");
+		return NULL;
+    }
+    map_ptr_t map = (map_ptr_t)malloc((fields+1)* sizeof(Map));
+    int i=0;
+    int j=0;
+    for(i=0; i<fields; i++) {
+        //printf("%d %p %s\n",i,*(payload),*(payload+i));
+        int len = str_length(*(payload+i));
+        for(j=0; j<len; j++) {
+			if(*(*(payload+i)+j) == sdel) {
+				(map+i)->name = str_get_between_index(*(payload+i),0,j-1);
+				(map+i)->value = str_get_between_index(*(payload+i),j+1,len-1);
+				break;
+			}
+		}
+	}
+    FREE_STRING_ARRAY(payload);
+    (map+fields)->name = NULL;  //in oder to calculate the size
+    return map;
+}
+
+int map_to_str(map_ptr_t map,  char del, char** str) {
+	if(!map || !str) PARAMETER_ERROR("map_to_str");
+	int nlen = str_length(map->name);
+	int vlen = str_length(map->value);
+	*str = (char*)malloc(nlen+vlen+2);
+	int i;
+	for(i=0; i<nlen; i++) {
+		*(*str+i) = *(map->name+i);
+	}
+	*(*str+nlen) = del;
+	for(i=0; i<vlen; i++) {
+		*(*str+nlen+1+i) = *(map->value+i);
+	}
+	*(*str+nlen+vlen+1) = 0;
+	return (nlen+vlen+1);
+}
+
+int map_cat(map_ptr_t map,  char fdel,  char sdel, char** str) {
+	if(!map) PARAMETER_ERROR("map_cat");
+	
+	char* str_temp = (char*)malloc(MAX_FRAME_SIZE); //initialize the memory block so str_length() returns 0
+	memset(str_temp,0,MAX_FRAME_SIZE);
+	int i = 0;
+	int len = 0;
+    while(((map+i)->name)) {
+        char* sensor = NULL;
+        //len += str_cat((map+i)->name,(map+i)->value,sdel,&sensor); str_cat() will add sdel in the end!!
+        len += map_to_str(&map[i],sdel,&sensor);
+        strncat(str_temp,sensor,len);   //will not change len 
+        *(str_temp+len+i) = fdel;
+        free(sensor);
+        i++;
+    }
+    if(len+i != str_length(str_temp)) {
+		printf("%d %d %s %s\n",len+i,str_length(str_temp),str_temp,"algorithm error in map_cat()...");
+		exit(EXIT_FAILURE);
+	}
+    *str = str_get_between_index(str_temp,0,len+i-2);  //remove the last del otherwise an extra del will appear when passed as an parameter to str_multi_cat()
+    free(str_temp);
+	return (len+i-1);
+}
+
+int map_get_size(map_ptr_t map) {
+    if(!map) PARAMETER_ERROR("map_get_size");
+    int i = 0;
+    while(((map+i)->name)) {
+        i++;
+    }
+    return i;
+}
+
+char* map_get_value(map_ptr_t map,char* name) {
+	if(!map || !name) PARAMETER_ERROR("map_get_value");
+    int i = 0;
+    while(!((map+i)->name)) {
+        if(strcmp((map+i)->name,name)==0)
+			return (map+i)->value;
+        i++;
+    } 
+    printf("%s\n","the map does not contain the iven name..");
+    return NULL;
+}
+
+void map_destroy(map_ptr_t map) {
+	if(!map) PARAMETER_ERROR("map_destroy");
+    int i = 0;
+    while(!((map+i)->name)) {
+        free((map+i)->name);
+        (map+i)->name = NULL;
+        free((map+i)->value);
+        (map+i)->value = NULL;
+        i++;
+    } 
+    free(map);
+    map = NULL;
+}
+
+void data_destroy(data_ptr_t dptr) {
+	if(!dptr) PARAMETER_ERROR("data_destroy");
+	free(dptr->address);
+	dptr->address = NULL;
+	map_destroy(dptr->payload);
+	free(dptr);
+	dptr = NULL;
+}
+
+void data_print(data_ptr_t dptr) {
+	if(!dptr) PARAMETER_ERROR("data_print");
+	printf("receive sensor data @ address=%s\n",dptr->address);
+	printf("%s\n","\tname\tvalue");
+	int i = 0;
+	while((dptr->payload+i)->name != NULL) {
+		printf("\t%s\t%s\n",(dptr->payload+i)->name,(dptr->payload+i)->value);
+		i++;
+	}
+}
+
+*/
+
+
+#ifdef WR
+    /* The coordinator can be addressed by either setting the 64-bit address 
+    to all 0x00s and the 16-bit address to 0xFFFE, 
+    OR by setting the 64-bit address to the coordinator's 64-bit address 
+    and the 16-bit address to 0x0000. 
+    Set to the 16-bit address of the destination device, if known. 
+	Set to 0xFFFE if the address is unknown or if sending a broadcast */ 
+    //String mac_addr = hex_to_str("0013A200407A247A"); //0013A20040795BCE
+    //String ntw_addr = hex_to_str("FFFE");  
+    //char mac_addr[9] = {0x00,0x13,0xA2,0x00,0x40,0x7A,0x24,0x7A};
+    #ifndef AP
+    char mac_addr[9] = {0x00,0x13,0xA2,0x00,0x40,0x79,0x5B,0xCE};
+    char ntw_addr[3] = {0xFF,0xFE};
+    String RFData = NULL;
+    map_ptr_t payload = str_to_map("Temp:35#GPS:31.200;42.100#DATE:12-01-01#",'#',':');
+    int fields = map_get_size(payload);
+	int len = wframe_assemble(0x80,fields,"356906593",56,payload,&RFData); //356906593#WASPMOTE_XBEE
+    int bytes = xbee_txReq_frame_assemble(mac_addr,ntw_addr,0,0,RFData,len); 
+    
+    //free(mac_addr);
+    //free(ntw_addr);
+    map_destroy(payload);
+    free(RFData);
+    
+    printf("frame length: %d RF length: %d\n",bytes,len);
+    //bytes = xbee_frame_escape(bytes);   
+      
+    int logfds = open("./esclog.txt", O_CREAT | O_RDWR | O_APPEND);
+	int ret = 0, leng = bytes;
+	String fbuf = outbuf;
+	while (leng>0 && (ret=write(logfds,fbuf,leng))!=0) {
+		if(ret==-1) {
+			if(errno==EINTR)
+				continue;
+			perror("wrinting to log file");
+		}
+		leng -= ret;
+		fbuf += ret;
+	}
+	if(close(logfds)==-1) perror("close log file"); 	
+	
+	#else
+	
+	int bytes = xbee_localAT_frame_assemble("AP",AP);
+	printf("frame length: %d\n",bytes);
+    //bytes = xbee_frame_escape(bytes);	
+	
+	#endif
+
+	
+	tty_serial_write(tty_fds,outbuf,bytes); 
+    if(close(tty_fds)==-1) perror("close tty file");  
+    
+    /*
+    outbuf[0] = 0x7E;
+    outbuf[1] = 0x00;
+    outbuf[2] = 0x13;
+    outbuf[3] = 0x10;
+    outbuf[4] = 0x01;
+    outbuf[5] = 0x00;
+    outbuf[6] = 0x13;
+    outbuf[7] = 0xA2;
+    outbuf[8] = 0x00;
+    outbuf[9] = 0x40;
+    outbuf[10] = 0x7A;
+    outbuf[11] = 0x24;
+    outbuf[12] = 0x7A;
+    outbuf[13] = 0xFF;
+    outbuf[14] = 0xFE;
+    outbuf[15] = 0x00;
+    outbuf[16] = 0x00;
+    outbuf[17] = 0x68;
+    outbuf[18] = 0x65;
+    outbuf[19] = 0x6C;
+    outbuf[20] = 0x6C;
+    outbuf[21] = 0x6F;
+    outbuf[22] = 0xD0; 
+    
+    int bytes = 23;
+    //bytes = xbee_frame_escape(23);
+    
+    int logfds = open("./esclog.txt", O_CREAT | O_RDWR | O_APPEND);
+	int ret = 0, leng = bytes;
+	String fbuf = outbuf;
+	while (leng>0 && (ret=write(logfds,fbuf,leng))!=0) {
+		if(ret==-1) {
+			if(errno==EINTR)
+				continue;
+			perror("wrinting to log file");
+		}
+		leng -= ret;
+		fbuf += ret;
+	}
+	if(close(logfds)==-1) perror("close log file"); 	
+	
+    //tty_serial_write(tty_fds,outbuf,bytes);
+    printf("write bytes: %d\n",bytes); 
+    
+    //FILE* tty_stm = fdopen(tty_fds,"w");
+    //fflush(tty_stm);
+    //if(fclose(tty_stm)==-1) perror("close ttyUSB file");
+    if(close(tty_fds)==-1) perror("close tty file"); */
+    #endif

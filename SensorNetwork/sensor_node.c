@@ -14,7 +14,6 @@
 #define POINTER_CHECK(ptrcheck,fun) do{ if(ptrcheck) printf("%s() error: invalid parameter...\n",fun); } while(0)
 
 sensor_id_t sid;    //uint16_t
-unsigned int frq;
 unsigned int sseq;
 unsigned int port;  //remote gateway ip and port used to create tcp connection
 char* ip;
@@ -67,9 +66,9 @@ void sensor_pkt_sim(packet_ptr_t ppt,sensor_data_ptr_t sdp) {
 	ppt->id = sid;
 
 	srand((unsigned)time(NULL));
-	int t = rand()%6000 - 2000;
-	ppt->sign = (t>0)?0:1;
-    ppt->tem = (t>0)?t:-t;
+	int t = rand()%6000 - 2000;  //-2000 to 4000
+	ppt->sign = (t>0)?0:1;       
+    ppt->tem = (t>0)?t:-t;       //unsigned 12 bits, enough to represent the absolute value of temp: 0 - 4000
 	sensor_set_parity(ppt);
 
 	sdp->id = sid;
@@ -91,12 +90,11 @@ int main(int argv, char* args[]) {
 	#endif
 
 	#ifndef SET_FREQUENCY
-	#define SET_FREQUENCY 60
+	#define SET_FREQUENCY 5
 	#endif
 
 	//initialization
 	sid = SET_ID;
-	frq = SET_FREQUENCY;
 	sseq = 0;
 	port = (int)strtol(args[2],NULL,10);  //remote gateway ip and port used to create tcp connection
 	ip = args[1];
@@ -107,10 +105,12 @@ int main(int argv, char* args[]) {
 	packet_ptr_t ppt = malloc(sizeof(packet_t));
 	sensor_data_ptr_t sdp = malloc(sizeof(sensor_data_t));
 
-	int log_fds = open(filename,O_CREAT | O_RDWR | O_APPEND);
+	int log_fds = open(filename,O_CREAT | O_RDWR | O_APPEND, S_IRWXU | S_IRWXG | S_IRWXO);
 	if(log_fds<0) {
         perror("open log file error");
         exit(EXIT_FAILURE);
+	} else {
+		//fchmod(log_fds, S_IRWXU | S_IRWXG | S_IRWXO);
 	}
 	
 	//create tcp connection to the gateway
@@ -121,12 +121,12 @@ int main(int argv, char* args[]) {
 		tcp_send(client,ppt,sizeof(*ppt));
 
 		char logstr[100];
-		len = snprintf(logstr,100,"%d: %5.2fC @ %s", sid,  //automatically line buffered to log file??
+		len = snprintf(logstr,100,"%d: %4.2fC @ %s", sid,  
                   (float)(sdp->value)/100.0f, ctime(&(sdp->ts)));
 		printf("%d %d %d %s\n",sid,len,sdp->value,logstr);
 		write(log_fds,logstr,len);
 		
-		sleep(10);
+		sleep(SET_FREQUENCY);
 	}
 	
 	tcp_close(&client);

@@ -1,6 +1,3 @@
-/*******************************************************************************
-       send data from sensor to server and upload to database, multi-threading									    
-*******************************************************************************/
 #include <my_global.h>
 #include <mysql.h>
 #include <stdio.h>
@@ -83,8 +80,6 @@ int main( int argc, char *argv[] )
     int fd_master,newSocketFlag;
     fd_set readfd;
   
-    struct stat st;
-
     if(argc != 2)
     {
        printf("Incorrect number of args\n");
@@ -367,9 +362,3 @@ void* ReadqueueToDataBase(void *arg)
    return NULL;
 
 }
-
-
-
-
-
-
