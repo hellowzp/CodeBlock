@@ -1,0 +1,1 @@
+if you need to generate your own (binary) sensor_data file (32 bit system...), use fcreator.c

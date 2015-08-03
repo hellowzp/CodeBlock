@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #include "tcpsocket.h"
 #include "gateway.h"
@@ -28,7 +29,7 @@
 /*------------------------------------------------------------------------------
 		macro definition
 ------------------------------------------------------------------------------*/
-#define THREADNUM 10
+#define THREADNUM 5
 
 //attention: here for req 12
 #ifndef SET_QUEUE_SIZE
@@ -45,33 +46,24 @@
 #define SET_MAX_TEMP 200
 #endif
 
-#define LOG_FIFO "logFifo"
+#define FIFO_NAME "logFifo"
 
-/*------------------------------------------------------------------------------
-		variable declare
-------------------------------------------------------------------------------*/
 
-	packet_ptr_t sensor_packet_temp;
- 
-	int *temp_aver;
-	int *tenDataFlag;
-	
-	MYSQL *conn;
-	
-	Queue *q_create;
+int *temp_aver;
+Queue *q_create;
 
-	char* fifo_name=LOG_FIFO;
-	int fd0;
-	int PORT_SENSOR;
-	char logbuf[100];
-	int my_MAXSIZE;
+int fifo_fds;
+int server_port;
+char logbuf[100];
+int QUEUE_SIZE;
+MYSQL *conn;
 
-/*------------------------------------------------------------------------------
-		function declare
-------------------------------------------------------------------------------*/
-                             
+packet_ptr_t sensor_packet_temp;
+
+
 void * thread_task_TCP_Con (void *arg);
-void* ReadqueueToDataBase(void *arg);
+void * ReadqueueToDataBase(void *arg);
+static void exit_clean();
 
 /*------------------------------------------------------------------------------
 		main
@@ -80,18 +72,15 @@ void* ReadqueueToDataBase(void *arg);
 int main( int argc, char *argv[] )
 {
     Socket server,client;   
-    int fd_master,newSocketFlag;
-    fd_set readfd;
-  
-    struct stat st;
 
     if(argc != 2)
     {
        printf("Incorrect number of args\n");
        exit(-1);
     }
-    server_port = (int)strtol(args[1],NULL,10);  //server port
-	if(server_port <= 0 || server_port > 65535){
+
+    server_port = (int)strtol(argv[1],NULL,10);  //server port
+    if(server_port <= 0 || server_port > 65535){
        printf("invalid port\n");
        exit(-2);
     }
@@ -100,74 +89,90 @@ int main( int argc, char *argv[] )
 						variable initialization
 ***************************************************************************** */
 
-        //tasks maxim number 
-        sensor_malloc();
-        temp_aver=(int*)malloc(Sensor_Number*sizeof(int));
+    //tasks maxim number
+    sensor_malloc();
+    temp_aver=(int*)malloc(Sensor_Number*sizeof(int));
 
-        //pool initial
-        pool=(CThread_pool *)malloc(sizeof(CThread_pool));
-    
-        my_MAXSIZE=SET_QUEUE_SIZE; 
-	    
-	    q_create=QueueCreate();
+    //pool initial
+    pool=(CThread_pool *)malloc(sizeof(CThread_pool));
 
-/*****************************************************************************
-						SQL connection
-***************************************************************************** */
-	
-       fd0= open(fifo_name,O_WRONLY);
+    QUEUE_SIZE = SET_QUEUE_SIZE;
+    q_create = QueueCreate();
 
-	   conn = mysql_init(NULL); 
-//for GT
-//	mysql_real_connect(conn, "studev.groept.be", "a13_syssoft", "a13_syssoft", "a13_syssoft", 0, NULL, 0);
-//for my own
-	printf("sql connection.. ***\n");
-	mysql_real_connect(conn, "localhost", "root", "root", "sensor", 0, NULL, 0);
-	printf("sql connected.. ***\n"); 
+    struct stat st;
+    if (stat(FIFO_NAME, &st) != 0)
+        mkfifo(FIFO_NAME, 0666);
 
-/*****************************************************************************
-					Create	Multi-Thread & connection manager
-***************************************************************************** */    
-    printf("init pool...\n");    
+    pid_t pid = fork();
+    if(pid>0) {
 
-    //initial thread pool
-    pool_init (THREADNUM);
- 
-    //create server and get their fd  
-    server=tcp_passive_open(PORT_SENSOR);          
-  
-	while(1)
-	{ 
-	        printf("server waiting for connection.. ***\n");    
-			client = tcp_wait_for_connection( server);
-			printf("new connection.. ***\n"); 
+        fifo_fds = open(FIFO_NAME, O_WRONLY);
+        if(fifo_fds<0) {
+            perror("parent open fifo for writing error");
+            exit(EXIT_FAILURE);
+        }
 
-		//add task to new worker
-	        pool_add_worker (thread_task_TCP_Con, client);  /////////
-	
-		//write new connection infor to FIFO-->log file
-		sprintf(logbuf, "Sensor node connection with Ip address %s, socket port %d  has  connected;\n",get_ip_addr(client),PORT_SENSOR);
-		printf("  \nwrite ip address & port to fifo:  %s\n",logbuf);
-	    write(fd0, logbuf, strlen(logbuf)+1);
-	
-		//sleep for a while to make sure the queue is not empty in the beginning
-		sleep(5);
-		//read data from the queue and save it into the database
-		pool_add_worker (ReadqueueToDataBase, client);	 /////////	   
-   }
-		mysql_close(conn);
-		//free memory         
-	    pool_destroy ();
-        QueueDestroy(&q_create);
+        conn = mysql_init(NULL);
+        mysql_real_connect(conn, "studev.groept.be", "a13_syssoft", "a13_syssoft", "a13_syssoft", 0, NULL, 0);
+    //    mysql_real_connect(conn, "localhost", "root", "root", "sensor", 0, NULL, 0);
+        printf("sql connection created.. ***\n");
 
-		//delete fifo
-		close(fd0);		
-		unlink(fifo_name);
-       
-		free(temp_aver);
-		sensor_free();
- 
-		return 0;
+        //initial thread pool
+        pool_init (THREADNUM);
+
+        //create server and get their fd
+        server=tcp_passive_open(server_port);
+
+        atexit(exit_clean);
+
+        while(1) {
+            client = tcp_wait_for_connection( server);
+            printf("new client connection.. ***\n");
+
+            //add task to new worker
+            pool_add_worker (thread_task_TCP_Con, client);  /////////
+
+            //write new connection infor to FIFO-->log file
+            sprintf(logbuf, "Sensor node connection with Ip address %s, socket port %d  has  connected;\n",get_ip_addr(client),server_port);
+            printf("  \nwrite ip address & port to fifo:  %s\n",logbuf);
+            write(fifo_fds, logbuf, strlen(logbuf)+1);
+
+            //read data from the queue and save it into the database
+            pool_add_worker (ReadqueueToDataBase, client);	 /////////
+        }
+
+        int retStatus;
+        waitpid(pid, &retStatus, 0);
+        printf("child process exit with status \%d\n", retStatus);
+
+    } else if (pid==0) {
+        fifo_fds = open(FIFO_NAME, O_RDONLY);
+        if(fifo_fds<0) {
+            perror("child open fifo for reading error");
+            exit(EXIT_FAILURE);
+        }
+
+        int log_fds = open("gateway.log",O_CREAT | O_WRONLY | O_APPEND, S_IRWXU | S_IRWXG);
+        if(log_fds<0) {
+            perror("child open log file error");
+            exit(EXIT_FAILURE);
+        }
+
+        char buf[100];
+        memset(buf,0,100);
+        while(1) {
+            int bytes = read(fifo_fds,buf,100);
+            if(bytes==-1) perror("reading fifo");
+            else if(bytes>0) write(log_fds,buf,bytes);
+//			sleep(60);
+        }
+
+    } else {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+
+    return 0;
 }
 
 
@@ -184,17 +189,9 @@ void * thread_task_TCP_Con (void *arg)
 	client=arg;	 
 	bytes=1;    //tcp receiver > 0 => do
 
-    //skip the compression for quickly testing
-	//int tenDataFlag=0;
-	
-     do
+     while(bytes>0)
      {	
 	    bytes = tcp_receive( client, buffer0, BUFSIZE ); //statistic
-	        
-	   /**********************************************************
-					sensor data communication
-	   ************************************************************/ 
-			
 	    sensorData=atoi(buffer0);
 	    data_buffer=sensorData;    //statistic :get sensor id
 	   
@@ -206,9 +203,7 @@ void * thread_task_TCP_Con (void *arg)
 	    sensor_data.value=sensor_packet_temp->value;    
 	    sensor_data.id=sensor_packet_temp->id;
 	    
-	    printf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-	    printf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>ddddddddddd %d >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n",sensor_data.id);
-	    	printf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        printf("\n>>>>>>>>>>>>ddddddddddd %d >>>>>>\n",sensor_data.id);
 	    
 	    sensor_packet_temp->parity=parityCheck(sensor_packet_temp);
 	    
@@ -220,7 +215,7 @@ void * thread_task_TCP_Con (void *arg)
 	/*****************************************************************************
 			   		Data Compression
 	***************************************************************************** */ 
-	    data_manipulation(ID_buffer);            //compression
+        data_manipulation(ID_buffer);
 	    
 
 	/*****************************************************************************
@@ -232,47 +227,40 @@ void * thread_task_TCP_Con (void *arg)
 	    {
 	         if(IDFlagCheck[i])
 	         {
-			temp_aver[i]=tempAver[i];  
+                temp_aver[i]=tempAver[i];
   	         }
 	    }
-	   	  //tenDataFlag++;
-	   	  
-	   //if(tenDataFlag==10)          /*skip the checking(if we already have 10 data for this sensor then enqueue) just for quickly seeing the data*/
+
 	   {
-		//tenDataFlag=0;
-		if(my_MAXSIZE>QueueSize(q_create))
+        if(QUEUE_SIZE>QueueSize(q_create))
 		{
 			long int data_averaged=(long int)((sensor_data.id<<20)+((long int)(temp_aver[sensor_data.id])<<1));
 			packet_ptr_t sensor_data_tempera=(packet_ptr_t)&data_averaged;	
 			
 			int temperatureTemp=sensor_data_tempera->value/10;
 
-//attention: here for req 7
-			//euqueue here			
+
 			Enqueue(q_create,(DATATYPE)data_averaged);
 			
-//attention: here for req 11, 15			
-			//temperature too low
+
 			if(temperatureTemp<SET_MIN_TEMP)
 			{
 				sprintf(logbuf,"Temperature of sensor %d is too low: %d °C;\n",sensor_data.id%30,temperatureTemp); // in the whole project, i only show the data of sensor id from 0 to 30
 				printf("write low T to fifo:  %s\n",logbuf);
-			        write(fd0, logbuf, strlen(logbuf)+1);
+                    write(fifo_fds, logbuf, strlen(logbuf)+1);
 				perror("Write:"); //Very crude error check
    			        memset(logbuf, 0, sizeof(logbuf));
 			}
 
-			//temperature too high
 			else if(temperatureTemp>SET_MAX_TEMP)
 			{
 				sprintf(logbuf,"Temperature of sensor %d is too high: %d °C;\n",sensor_data.id%30,temperatureTemp);// in the whole project, i only show the data of sensor id from 0 to 30
 				printf("write high T to fifo:  %s\n",logbuf);
-			        write(fd0, logbuf, strlen(logbuf)+1);
+                    write(fifo_fds, logbuf, strlen(logbuf)+1);
 				perror("Write:"); //Very crude error check
    			        memset(logbuf, 0, sizeof(logbuf));
 			}
 
-			//temperature is normal
 			else
 			{
 				//do nothing:just print
@@ -283,7 +271,7 @@ void * thread_task_TCP_Con (void *arg)
 		}
 
 	   }
-    }while(bytes>0);
+    }
     
 
 
@@ -296,7 +284,7 @@ void * thread_task_TCP_Con (void *arg)
     
 	sprintf(logbuf, "\nClient with Ip address %s, socket port %d loss connection;\n",get_ip_addr(client),get_port(client));
 	printf("write loss ip_addr & port to fifo:  %s\n",logbuf);
-	write(fd0, logbuf, strlen(logbuf)+1);
+    write(fifo_fds, logbuf, strlen(logbuf)+1);
 
 	//close client   		
 	printf("\nclose client ");
@@ -349,6 +337,8 @@ void* ReadqueueToDataBase(void *arg)
 		strcat(container, ts_buffer);
 		strcat(container, ")");
 
+        printf("%s\n",container);
+
 		//excute the query
 		mysql_query(conn, container);
 
@@ -365,6 +355,22 @@ void* ReadqueueToDataBase(void *arg)
    }
 
    return NULL;
+
+}
+
+static void exit_clean() {
+    printf("clean before exit ...");
+    mysql_close(conn);
+    //free memory
+    pool_destroy ();
+    QueueDestroy(&q_create);
+
+    //delete fifo
+    close(fifo_fds);
+    unlink(FIFO_NAME);
+
+    free(temp_aver);
+    sensor_free();
 
 }
 

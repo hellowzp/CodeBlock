@@ -23,7 +23,7 @@
 	  
 //attention: here for req 3
 #ifndef SET_FREQUENCY
-#define SET_FREQUENCY 1
+#define SET_FREQUENCY 5
 #endif
 
 /*------------------------------------------------------------------------------

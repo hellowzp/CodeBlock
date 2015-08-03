@@ -1,0 +1,5 @@
+//cd Desktop/
+//gcc -Wall -Werror main.c myqueue.c
+//cppcheck main.c --enable=all    /   cppcheck main.c --enable=all --suppress=missingIncludeSystem
+
+//./a.out

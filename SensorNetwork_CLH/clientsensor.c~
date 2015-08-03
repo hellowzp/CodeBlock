@@ -79,7 +79,7 @@ int main( int argc, char *argv[] )
 
 
       // open file
-	  fd = open( finalFile, O_CREAT | O_APPEND| O_WRONLY, S_IRWXU);
+	  fd = open( finalFile, O_CREAT |O_APPEND| O_WRONLY, S_IRWXU);
 	  if ( fd == -1 ) {
 	     #ifdef DEBUG
 		 perror("File open failed: ");
