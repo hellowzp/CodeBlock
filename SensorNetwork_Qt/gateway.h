@@ -26,11 +26,7 @@ typedef struct data_t{
 }data_t;
 
 
-<<<<<<< HEAD
-#define sensor_number 1024  
-=======
 #define sensor_number 4096
->>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 
 /*----------------------------------------------------
  * function prototype

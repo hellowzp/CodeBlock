@@ -18,7 +18,7 @@ all : GATEWAY SENSOR1 SENSOR2 SENSOR3
 
 #build
 GATEWAY : gateway.c $(OBJ) $(MODULE)
-	gcc $^ -DDEBUG -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHARED_LIB) -lmylist -o $@
+	gcc $^ -DDEBUG -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHARED_LIB) -lmylist -o build/$@
 
 SENSOR1 : sensor_node.c tcpsocket.o
 	gcc $^ -DSET_ID=47 -o $@	

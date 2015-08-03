@@ -32,11 +32,7 @@ void sensor_malloc()
 	valueptr=(sensor_value_t *)malloc(sizeof(sensor_value_t));
 	tsptr=(sensor_ts_t *)malloc(sizeof(sensor_ts_t));
 	
-<<<<<<< HEAD
-	IDFlagCheck=(int *)malloc(Sensor_Number*sizeof(int));    
-=======
     IDFlagCheck=(int *)malloc(Sensor_Number*sizeof(int));
->>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 
 	list_index=(int *)malloc(Sensor_Number*sizeof(int));
 
@@ -46,24 +42,6 @@ void sensor_malloc()
 }
 
 
-<<<<<<< HEAD
-void data_manipulation(int sensorid)
-{
-
-		int sensor_id;
-		
-		data_ptr_t my_data_ptr;     //list
-		my_data_ptr=(data_ptr_t)malloc(sizeof(data_ptr_t));
-		sensor_id=sensorid;
-	
-		
-		if(IDFlagCheck[sensor_id]==0)
-			all_sensor_list[sensor_id]=list_alloc(&data_destory,&data_compare, &data_copy,my_data_ptr);	  //gateway
-		IDFlagCheck[sensor_id]=1;
-		
-		list_insert_at_index(all_sensor_list[sensor_id],&data_buffer,list_index[sensor_id]);	//
-				
-=======
 void data_manipulation(int sensor_id)
 {
 
@@ -76,7 +54,6 @@ void data_manipulation(int sensor_id)
 		
         list_insert_at_index(all_sensor_list[sensor_id],&data_buffer,list_index[sensor_id]);
 
->>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 		list_index[sensor_id]++; 
 			
 	    tempAver[sensor_data.id]=0;

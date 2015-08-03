@@ -8,11 +8,7 @@ extern int QUEUE_SIZE;
 
 Queue* QueueCreate()   //empty queue,Initialization
 {
-<<<<<<< HEAD
-    Queue *new_queue=(Queue *)malloc(QUEUE_SIZE * sizeof(Queue));
-=======
 	Queue *new_queue=(Queue *)malloc(QUEUE_SIZE * sizeof(Queue));
->>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
     new_queue->base=(DATATYPE *)malloc(QUEUE_SIZE * sizeof(DATATYPE));
 	new_queue->front =0;
 	new_queue->rear = 0;
@@ -30,11 +26,7 @@ void QueueDestroy(Queue **queue)  //delete the queue
      {
         free(*queue);
         *queue=NULL;
-<<<<<<< HEAD
-        printf("Destroy success!\n");
-=======
         printf("Destroy queue success!\n");
->>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
       }
 }
 
@@ -47,11 +39,7 @@ int QueueSize(Queue *queue)
      else if(queue->full==1&&queue->front==queue->rear)
      {
 		 printf("The queue is full\n");
-<<<<<<< HEAD
-         return QUEUE_SIZE;
-=======
 		 return QUEUE_SIZE;
->>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
 	 }
      else
      {
@@ -94,11 +82,7 @@ void Enqueue(Queue *queue,DATATYPE element)//insert pas Q new ele
      else
      {
 	    queue->base[queue->rear] = element;
-<<<<<<< HEAD
-        queue->rear = (queue->rear + 1) % QUEUE_SIZE;
-=======
 	    queue->rear = (queue->rear + 1) % QUEUE_SIZE;
->>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
         if(queue->front==queue->rear)
         {
 			queue->full=1;
@@ -120,11 +104,7 @@ void Dequeue(Queue *queue)//delete Q's top element use p return the value
 	 }
      else
      {
-<<<<<<< HEAD
-        queue->front = (queue->front + 1) % QUEUE_SIZE;
-=======
 	    queue->front = (queue->front + 1) % QUEUE_SIZE;
->>>>>>> 72ab7c9359283513d60aec90b8ff12ff7c918271
         if(queue->front==queue->rear)
         {
 			queue->full=0;

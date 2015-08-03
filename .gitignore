@@ -1,11 +1,13 @@
 **/bin/**
 **/build/**
+**/temp/**
 
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
+*.out
 
 # editor backup file
 *~
