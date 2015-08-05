@@ -12,7 +12,8 @@ SOURCES += main.c \
     my_queue.c \
     statistic.c \
     tcpsocket.c \
-    thread.c
+    thread.c \
+    queue.c
 
 include(deployment.pri)
 qtcAddDeployment()
@@ -24,7 +25,8 @@ HEADERS += \
     my_queue.h \
     statistic.h \
     tcpsocket.h \
-    thread.h
+    thread.h \
+    queue.h
 
 OTHER_FILES += \
     makefile

@@ -1,36 +1,39 @@
 #include <stdio.h>
-#include "myqueue.h"
+#include "queue.h"
 #include <stdlib.h>
 
-#define DEBUG_PRINTF /* define here a debug macro */
+#define DEBUG_PRINTF(msg) /* define here a debug macro */ \
+#ifdef DEBUG \
+do { printf(msg); } while(0); \
+#endif
 
 /* The caller of the queue is responsible for implementing the functions below */
-extern void element_print(element_t element);
-extern void element_copy(element_t *dest_element, element_t src_element);
-extern void element_free(element_t *element);
+extern void element_print(element_ptr_t element);
+extern void element_copy(element_ptr_t* dest_element, element_ptr_t src_element);
+extern void element_free(element_ptr_t element);
 
 /*
  * The real definition of 'struct queue'
  */
 struct queue {
-  element_t *arr; // dynamic array containing data elements
+  element_ptr_t arr; // dynamic array containing data elements
   int current_size; // Counts number of elements in the queue
   int front, rear;
   // Remark for later: extra fields need to be added here to make it a thread-safe queue as needed for the assigment 
 };
 
-queue_t* queue_create()
+Queue queue_create()
 {
   // implementation goes here
-  	queue_t *new_queue=(queue_t *)malloc(QUEUE_SIZE * sizeof(queue_t));
-    new_queue->arr=(element_t *)malloc(QUEUE_SIZE * sizeof(element_t));
+  	Queue new_queue=(queue_t *)malloc(sizeof(queue_t));
+    new_queue->arr=(element_ptr_t *)malloc(QUEUE_SIZE * sizeof(element_ptr_t));
 	new_queue->front =0;
 	new_queue->rear = 0;
     new_queue->current_size=0;
     return new_queue;
 }
 
-void queue_free(queue_t** queue)
+void queue_free(Queue* queue)
 {
   // implementation goes here
     if(*queue==NULL)
@@ -39,13 +42,18 @@ void queue_free(queue_t** queue)
     }
     else
     {
+        element_ptr_t * elements = (*queue)->arr;
+        while( elements != NULL) {
+			element_free(elements);
+			elements++;
+		}
         free(*queue);
         *queue=NULL;
         printf("\nFree success!\n");
     }
 }
 
-void queue_enqueue(queue_t* queue, element_t element)
+void queue_enqueue(Queue queue, element_ptr_t element)
 {
   // implementation goes here
     if(queue->arr==NULL)	
@@ -70,7 +78,7 @@ void queue_enqueue(queue_t* queue, element_t element)
 	}
 }
 
-int queue_size(queue_t* queue)
+int queue_size(Queue queue)
 {
   // implementation goes here
     if(queue->arr==NULL)
@@ -89,9 +97,9 @@ int queue_size(queue_t* queue)
     }
 }
 
-element_t* queue_top(queue_t* queue){
+element_ptr_t* queue_top(Queue queue){
   // implementation goes here
-	element_t *p=(element_t*)malloc(sizeof(element_t));
+	element_ptr_t *p=(element_ptr_t*)malloc(sizeof(element_ptr_t));
     if(queue->arr==NULL)  
     {
 		 *p=-1;
@@ -110,7 +118,7 @@ element_t* queue_top(queue_t* queue){
 	}
 }
 
-void queue_dequeue(queue_t* queue)
+void queue_dequeue(Queue queue)
 {
   // implementation goes here
     if(queue->arr==NULL)	

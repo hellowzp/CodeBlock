@@ -121,18 +121,12 @@ lspci
 top
 uname -a
 waspmote
-cd ~/Downloads/w
-cd ~/Downloads/
-ls
-cd ./waspmote-pro-ide-v04-linux64/
-ls
 ./waspmote
 cd /dev
 cat ttyUSB0
 sudo cat ttyUSB0
 stty
 stty -a
-cd ~/Downloads/waspmote-pro-ide-v04-linux64/
 ./waspmote 
 sudo apt-get install git
 sudo apt-get install mysql
@@ -140,23 +134,11 @@ modprobe
 lsmod
 lsmod | grep rtl
 lspci
-cd ~/Downloads/
-ls
-rm waspmote-pro-ide-v04-linux64/man export
 man export
-cd ./waspmote-pro-ide-v04-linux64/
-ls
-mv ./waspmote ../
-cd ../
-ls
-rm waspmote-pro-ide-v04-linux64/
-rm -rf ./waspmote-pro-ide-v04-linux64/
-ls
 stty -a
 cat /etc/passwd
 history
 cat /etc/skel/.bash_logout
-export HISTIGNORE=”cd:ls:�?history
 gedit ~/.bash_history
 gedit ~/.bash_profile
 gedit ~/.bash_history
@@ -288,182 +270,6 @@ sudo apt-get update
 sudo apt-get install mysql-client-core-5.6
 mysql -hstudev.groept.be -ua13_syssoft －pa13_syssoft
 mysql -hstudev.groept.be -ua13_syssoft -pa13_syssoft
-cd ~/Documents/system_programming/final/
-gcc sensor_node.c
-gcc sensor_node.c -DSET_ID=123
-./a.out 123 123
-gcc sensor_node.c -DSET_ID=123
-gcc sensor_node.c
-gcc sensor_node.c -DSET_ID=123
-./a.out 123 123
-gcc sensor_node.c -DSET_ID=123
-./a.out 123 123
-gcc sensor_node.c -DSET_ID=123
-./a.out 123 123
-cd ~/Documents/ee5/
-gcc test.c
-./a.out
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-./a.out
-gcc test.c
-valgrind ./a.out
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-gcc test.c
-./a.out
-valgrind ./a.out
-gcc test.c
-valgrind ./a.out
-./a.out
-gcc test.c
-valgrind ./a.out
-valgrind ./a.out --leak-check=full
-man 23 read
-find / types.h 
-sudo locate / types.h
-clear
-sudo find / -iname types.h 
-clear
-git
-sudo apt-get install git
-GIT_DIR
-$GIT_DIR
-git config --global user.name hellowzp
-git config --global user.email zpkx.wang@gmail.com
-git config --global credential.helper cache
-cd ~/Documents/ee5/
-https://github.com/Levocon/EE5.git
-git init
-git add .
-cd wang_zhipeng/
-git add .
-git init
-git add .
-git commit -m 'update'
-git remote add origin https://github.com/Levocon/EE5.git
-git remote -v
-git push origin develop
-cd ../
-git clone https://github.com/Levocon/EE5.git ./
-git clone https://github.com/Levocon/EE5.git ./temp
-git brange
-git branch
-cd ~/Documents/ee5/
-gcc main.c
-clear
-gcc main.c
-cd ~/Documents/ee5/
-gcc main.c
-valgrind ./a.out
-gcc main.c
-valgrind ./a.out
-gcc main.c
-./a.out
-gcc main.c
-./a.out
-gcc main.c
-./a.out
-gcc main.c
-./a.out
-gcc main.c
-./a.out
-gcc main.c
-./a.out
-gcc main.c
-./a.out
-gcc main.c
-./a.out
-cd ~/Documents/ee5/
-git clone https://github.com/Levocon/EE5.git
-rm EE5 -r
-git branch
-git clone https://github.com/Levocon/EE5.git
-git log
-cd ../wang_zhipeng/
-git init
-cat .git/config
-git add .
-git commit 
-git remote add origin https://github.com/Levocon/EE5.git
-git branch
-git branch develop
-git branch
-git remote -v
-git push origin develop
-git push --help
-git pull origin master
-cat .git/config
-git init
-git status
-git add .
-git status
-git commit -m "fy"
-git status --ignored
-ls .git
-cd ./.git/branches
-ls
-cd .git/branches
-cd ./.git/branches
-cd ..
-ls
-cd branches/
-ls
-cd ..
-cat config
-git status
-cd ..
-git status
-git branch develop 
-rm .git -r
-y
-cat .git/config
-ls
-sudo apt-get remove git
-sudo apt-get autoremove 
-cd ../ee5/
-gcc main.c
-./a.out
-gcc main.c
-gcc _main.c
 ftp ftp.uu.net
 gunzip
 cd ~/Documents/system_programming/
