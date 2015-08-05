@@ -27,14 +27,22 @@ int main( void )
    queue_enqueue(queue, b);
    queue_enqueue(queue, c);
    queue_enqueue(queue, d);
+   queue_print(queue);
 
+   queue_enqueue(queue, a);
+   queue_enqueue(queue, b);
    queue_print(queue);
+
    queue_dequeue(queue);
    queue_print(queue);
-   queue_dequeue(queue);
-   queue_dequeue(queue);
-   queue_print(queue);
-   queue_dequeue(queue);
+
+   queue_enqueue(queue, a);
+   queue_enqueue(queue, b);
+   queue_enqueue(queue, c);
+   queue_enqueue(queue, d);
+   queue_enqueue(queue, b);
+   queue_enqueue(queue, c);
+   queue_enqueue(queue, d);
    queue_print(queue);
 
    queue_free(&queue);
@@ -61,7 +69,7 @@ int main( void )
  */
 void element_print(element_ptr_t element)
 {
-  // implementation goes here
+    printf("%d ", *(int*)element);
 }
 
 

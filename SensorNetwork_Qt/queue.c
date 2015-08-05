@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <string.h>
 
 #ifdef DEBUG
 #define DEBUG_PRINTF(msg) do { printf(msg); } while(0);
@@ -18,6 +19,24 @@ extern void element_copy(element_ptr_t* dest_element, element_ptr_t src_element)
 extern void element_free(element_ptr_t* element);
 
 extern const unsigned int QUEUE_ELEMENT_SIZE;
+
+/**   Implementation Notes:
+ *  queue_top operation only returns the element pointer and doesn't do any copy
+ *  queue_deque only change the front of the queue, so before a deque operation,
+ *  queue_top should be performed to get the element pointer so as to avoid potential
+ *  memory leakage if the elment contains a pointer inside its structure
+ *  because queue_free only frees the elements with indices from front to rear.
+ */
+
+
+/**
+ * get the valid element of the circular queue at index,
+ * the index may be out of bound of the queue memory.
+ * The size parameter is the maximum number of elements
+ * the queue can contain.
+ */
+static element_ptr_t get_valid_element(const element_ptr_t start_element_addr,
+                                       unsigned int index, unsigned int size);
 
 /*
  * The real definition of 'struct queue'
@@ -49,6 +68,8 @@ Queue queue_create()
 void queue_free(Queue* queue)
 {
     assert(queue!=NULL && *queue!=NULL);
+
+    // piece-wise free if front > rear
     if( (*queue)->front > (*queue)->rear ) {
         element_ptr_t elements = (*queue)->elements;
         int i = 0;
@@ -89,29 +110,45 @@ void queue_enqueue(Queue queue, element_ptr_t element)
         queue->front = queue->rear = 0;
         element_copy(&queue->elements, element);
     } else if(size==queue->capacity) {
-        queue->capacity += QUEUE_SIZE;
-        element_ptr_t newBlock = realloc( queue->elements,
-                queue->capacity * QUEUE_ELEMENT_SIZE);
+
+        unsigned int newCapacity = queue->capacity * 2;
+        /**
+         * don't use realloc, if elements already shifted (front!=0),
+         * memory error will happen ==> further test how realloc copy
+         * previously allocated memory (like the size copied)
+         */
+//      queue->capacity += QUEUE_SIZE;
+//      element_ptr_t newBlock = realloc(
+//                queue->elements + queue->front * QUEUE_ELEMENT_SIZE,
+//                queue->capacity * QUEUE_ELEMENT_SIZE);
+        element_ptr_t newBlock = calloc(QUEUE_ELEMENT_SIZE, newCapacity);
         if(newBlock != NULL) {
-            queue->elements = newBlock;
-            // should adjust front and rear here based on FIFO
+            element_ptr_t frontElement = queue->elements + queue->front * QUEUE_ELEMENT_SIZE;
+            // should do piece-wise copy if front>rear based on FIFO
+            if( queue->front > queue->rear ){
+                int frontBlockSize = (queue->capacity - queue->front) * QUEUE_ELEMENT_SIZE;
+                int rearBlockSize = (queue->rear + 1) * QUEUE_ELEMENT_SIZE;
+                memcpy(newBlock, frontElement, frontBlockSize);
+                memcpy(newBlock + frontBlockSize, queue->elements, rearBlockSize);
+            } else {
+                memcpy(newBlock, frontElement, queue->capacity * QUEUE_ELEMENT_SIZE);
+            }
             queue->front = 0;
-            queue->rear = queue->capacity - QUEUE_SIZE;
-            element_ptr_t newAddr = queue->elements + queue->rear * QUEUE_ELEMENT_SIZE;
+            queue->rear = queue->capacity;
+            queue->elements = newBlock;
+            queue->capacity = newCapacity;
+            element_ptr_t newAddr = newBlock + queue->rear * QUEUE_ELEMENT_SIZE;
             element_copy( &newAddr, element);
         } else {
             printf("\n%s!!\n\n","Queue reallocate memory failed");
         }
-    } else {
-        if(queue->front <= queue->rear) {
-            queue->rear ++;
-            element_ptr_t newAddr = queue->elements + queue->rear * QUEUE_ELEMENT_SIZE;
-            element_copy( &newAddr, element);
-        }
+    } else {  // just copy the element to the queue array
+        queue->rear ++;
+        if(queue->rear==queue->capacity)
+            queue->rear = 0;
+        element_ptr_t rear_element = queue->elements + queue->rear * QUEUE_ELEMENT_SIZE;
+        element_copy( &rear_element, element);
     }
-
-    printf("Queue size: %d %d %d\n", queue_size(queue),
-           queue->front, queue->rear);
 }
 
 /**
@@ -126,18 +163,48 @@ int queue_size(Queue queue)
 }
 
 element_ptr_t queue_top(Queue queue){
-    assert(!queue);
+    assert(queue!=NULL);
     if(queue_size(queue)==0) return NULL;
-    return queue->elements + queue->rear * QUEUE_ELEMENT_SIZE;
+    return queue->elements + queue->front * QUEUE_ELEMENT_SIZE;
 }
 
 void queue_dequeue(Queue queue)
 {
+    assert(queue!=NULL);
 
+    int size = queue_size(queue);
+    if(size==0) {
+        printf("%s\n", "Invalid peration: dequeue an empty queue");
+        return;
+    } else if (size==1) { // only one element, make it to the initial empty state
+        queue->front = queue->rear = queue->capacity;
+    } else {
+        queue->front ++;
+        if(queue->front==queue->capacity)
+            queue->front = 0;
+    }
 }
 
 void queue_print(Queue queue)
 {
+    assert(queue!=NULL);
+    printf("\n*****Print Queue*****\nQueue size: %d %d %d\n",
+           queue_size(queue), queue->front, queue->rear);
+    unsigned int rear = queue->rear;
+    if( queue->front > rear ){
+        rear += queue->capacity;
+    }
+    unsigned int i;
+    for( i=queue->front; i<=rear; i++ ){
+        element_ptr_t e = get_valid_element( queue->elements, i, queue->capacity);
+        element_print(e);
+    }
+    printf("\n%s\n\n", "*****Print Finished*****");
+}
 
+static element_ptr_t get_valid_element(const element_ptr_t start_element_addr,
+                                       unsigned int index, unsigned int size)
+{
+    return start_element_addr + QUEUE_ELEMENT_SIZE * (index%size);
 }
 
