@@ -1,5 +1,5 @@
-#ifndef LIST_H_
-#define LIST_H_
+#ifndef LIST_H
+#define LIST_H
 
 extern int list_errno;
 typedef void* data_ptr_t;
@@ -75,5 +75,5 @@ int list_get_index_of_data( list_ptr_t list, data_ptr_t data );
   // Finds the first element in 'list' that contains 'data' and deletes the element from 'list'. A free() is called on the data pointer of the element to free any dynamic memory allocated to the data pointer.  
 #endif //LIST_EXTRA
 
-#endif  //LIST_H_
+#endif  //LIST_H
 

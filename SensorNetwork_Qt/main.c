@@ -2,13 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+#include "util.h"
 #include "queue.h"
+#include "list.h"
 
 void element_print(element_ptr_t element);
 void element_copy(element_ptr_t* dest_element, element_ptr_t src_element);
 void element_free(element_ptr_t* element);
+int  element_compare(element_ptr_t x, element_ptr_t y) {
+    return *(int*)x > *(int*)y ? 1 :
+           *(int*)x < *(int*)y ? -1 : 0;
+}
 
 const unsigned int QUEUE_ELEMENT_SIZE = sizeof(int);
+
 
 int main( void )
 {
@@ -45,13 +53,25 @@ int main( void )
    queue_enqueue(queue, d);
    queue_print(queue);
 
+   printf("%d %d %d\n",*a,*b, element_compare(a,b));
+
+   list_ptr_t list = list_create( &element_copy, &element_free,
+                                  &element_compare, &element_print);
+   list_insert_at_index(list, a, 3);
+   list_print(list);
+   list_insert_at_index(list, b, -3);
+   list_print(list);
+
+   printf("%d %d\n", list_get_index_of_element(list,a),
+                     list_get_index_of_element(list,c));
+
    queue_free(&queue);
+   list_free(&list);
 
    free(a);
    free(b);
    free(c);
    free(d);
-
    return 0;
 }
 
@@ -69,7 +89,7 @@ int main( void )
  */
 void element_print(element_ptr_t element)
 {
-    printf("%d ", *(int*)element);
+    if(element) printf("%d ", *(int*)element);
 }
 
 
@@ -80,7 +100,10 @@ void element_print(element_ptr_t element)
  */
 void element_copy(element_ptr_t* dest_element, element_ptr_t src_element)
 {
-    memcpy(*dest_element, src_element, QUEUE_ELEMENT_SIZE);
+    assert(src_element && dest_element);
+    if(*dest_element==NULL)
+        MALLOC( *dest_element, sizeof(int) );
+    memcpy(*dest_element, src_element, sizeof(int));
 }
 
 /*

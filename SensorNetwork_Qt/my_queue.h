@@ -21,34 +21,34 @@ typedef struct queue
 **  Creates and initializes the queue and prepares it for usage
 **  Return a pointer to the newly created queue
 */
-Queue* QueueCreate();
+Queue* queue_create();
 
 /*  
 **  Add an element of type defined DATATYPE to the queue
 */
-void Enqueue(Queue* queue, DATATYPE element);
+void queue_enqueue(Queue* queue, DATATYPE element);
 
 /*
 **  Delete the queue from memory; set queue to NULL
 **  The queue can no longer be used unless QueueCreate is called again
 */
-void QueueDestroy(Queue** queue);
+void queue_free(Queue** queue);
 
 
 /*
 **  Return the number of elements in the queue
 */
-int QueueSize(Queue* queue);
+int queue_size(Queue* queue);
 
 /*
 **  Return a pointer to the top element in the queue
 */
-DATATYPE* QueueTop(Queue* queue);
+DATATYPE* queue_top(Queue* queue);
 
 /*
 **  Remove the top element from the queue
 */
-void Dequeue(Queue* queue);
+void queue_dequeue(Queue* queue);
 
 
 #endif //MYQUEUE_

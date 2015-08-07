@@ -7,8 +7,8 @@
 #include <pthread.h>
 #include <string.h>
 
-#ifdef DEBUG
-#define DEBUG_PRINTF(msg) do { printf(msg); } while(0);
+#ifndef DEBUG
+#define DEBUG_PRINTF(...) do { fprintf( stderr, __VA_ARGS__); } while(0)
 #else
 #define DEBUG_PRINTF(msg)
 #endif
@@ -95,7 +95,7 @@ void queue_free(Queue* queue)
     free( (*queue)->elements);
     free(*queue);
     *queue = NULL;
-    DEBUG_PRINTF('"\n%s\n","Queue free succedd!"');
+    DEBUG_PRINTF("\n%s\n","Queue free succeed!");
 }
 
 /**
@@ -140,7 +140,7 @@ void queue_enqueue(Queue queue, element_ptr_t element)
             element_ptr_t newAddr = newBlock + queue->rear * QUEUE_ELEMENT_SIZE;
             element_copy( &newAddr, element);
         } else {
-            printf("\n%s!!\n\n","Queue reallocate memory failed");
+            fprintf( stderr, "\n%s!!\n\n","Queue reallocate memory failed");
         }
     } else {  // just copy the element to the queue array
         queue->rear ++;

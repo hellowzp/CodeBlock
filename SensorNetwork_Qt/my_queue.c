@@ -6,7 +6,7 @@
 
 extern int QUEUE_SIZE;
 
-Queue* QueueCreate()   //empty queue,Initialization
+Queue* queue_create()   //empty queue,Initialization
 {
 	Queue *new_queue=(Queue *)malloc(QUEUE_SIZE * sizeof(Queue));
     new_queue->base=(DATATYPE *)malloc(QUEUE_SIZE * sizeof(DATATYPE));
@@ -16,7 +16,7 @@ Queue* QueueCreate()   //empty queue,Initialization
     return new_queue;
 }
 
-void QueueDestroy(Queue **queue)  //delete the queue
+void queue_free(Queue **queue)  //delete the queue
 {
      if(*queue==NULL)
      {
@@ -30,7 +30,7 @@ void QueueDestroy(Queue **queue)  //delete the queue
       }
 }
 
-int QueueSize(Queue *queue)
+int queue_size(Queue *queue)
 {
      if(queue->base==NULL)
      {
@@ -48,7 +48,7 @@ int QueueSize(Queue *queue)
      }
 }
 
-DATATYPE* QueueTop(Queue *queue)//return the top ele of the queue
+DATATYPE* queue_top(Queue *queue)//return the top ele of the queue
 {
 	 DATATYPE *p=(DATATYPE*)malloc(sizeof(DATATYPE));
      if(queue->base==NULL)  
@@ -69,7 +69,7 @@ DATATYPE* QueueTop(Queue *queue)//return the top ele of the queue
 	 }
 }
 
-void Enqueue(Queue *queue,DATATYPE element)//insert pas Q new ele
+void queue_enqueue(Queue *queue,DATATYPE element)//insert pas Q new ele
 {
      if(queue->base==NULL)	
      {
@@ -92,7 +92,7 @@ void Enqueue(Queue *queue,DATATYPE element)//insert pas Q new ele
 	 }
 }
 
-void Dequeue(Queue *queue)//delete Q's top element use p return the value 
+void queue_dequeue(Queue *queue)//delete Q's top element use p return the value
 {
      if(queue->base==NULL)	
      {  

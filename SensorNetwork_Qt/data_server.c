@@ -112,7 +112,7 @@ int main( int argc, char *argv[] )
 
     QUEUE_SIZE = SET_QUEUE_SIZE;
 
-    q_create=QueueCreate();
+    q_create=queue_create();
 
     printf("2 connecting to mysql server @%s\n", mysql_server);
 
@@ -266,14 +266,14 @@ void * thread_task_TCP_Con (void *arg)
          }
     }
 
-    if(SET_QUEUE_SIZE>QueueSize(q_create))
+    if(SET_QUEUE_SIZE>queue_size(q_create))
     {
         long int data_averaged=(long int)((sensor_data.id<<20)+((long int)(temp_aver[sensor_data.id])<<1));
         packet_ptr_t sensor_data_tempera=(packet_ptr_t)&data_averaged;
 
         int temperatureTemp=sensor_data_tempera->value/10;
 
-        Enqueue(q_create,(DATATYPE)data_averaged);
+        queue_enqueue(q_create,(DATATYPE)data_averaged);
 
         if(temperatureTemp<MIN_TEMP)
         {
@@ -338,11 +338,11 @@ void* ReadqueueToDataBase(void *arg)
 
 	sleep(1);
 
-	if(QueueSize(q_create)!=0)
+	if(queue_size(q_create)!=0)
 	{
 //attention: here for req 12
-		sensor_data_from_queue=(packet_ptr_t)QueueTop(q_create);
-		Dequeue(q_create);
+		sensor_data_from_queue=(packet_ptr_t)queue_top(q_create);
+		queue_dequeue(q_create);
 
 	    printf("%ld\t%ld\t%ld\n", (long int)sensor_data_from_queue->id%30,((long int)sensor_data_from_queue->value<4096)?(long int)sensor_data_from_queue->value/10:(((long int)sensor_data_from_queue->value)>>1)/10*(-1),(long int)time(NULL));
 
@@ -388,7 +388,7 @@ void* ReadqueueToDataBase(void *arg)
 static void exit_clean() {
     mysql_close(conn);
     pool_destroy ();
-    QueueDestroy(&q_create);
+    queue_free(&q_create);
 
     close(fifo_fds);
     unlink(FIFO_NAME);
