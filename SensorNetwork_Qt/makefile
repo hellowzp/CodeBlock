@@ -1,8 +1,13 @@
-#pass parameters to makefile
-#make mysql_server=192.168.1.100 run_server
+SRC = tcpsocket.c queue.c sensor_db.c 
+OBJ = $(addprefix $(BUILDDIR)/, $(SRC:.c=.o))
+HDR = $(SRC:.c=.h) config.h
 
-QUEUE_SIZE=200
-#SET_ID1=10
+SHRLIB = libmylist.so 
+SHRLIBDIR = /usr/lib
+BUILDDIR = build
+TEMPDIR = temp
+
+CFLAGS = -Wall
 
 MYSQL_CFLAGS = -I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing -g -DNDEBUG
 MYSQL_LIBS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
@@ -10,37 +15,57 @@ MYSQL_LIBS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
 #MYSQL_CFLAGS := $(mysql_config --cflags)
 #MYSQL_LIBS := $(mysql_config --libs)
 
-all: init sensor_server sensor_client log_server
+.PHONY: all clean
 
-init:
-	mkdir -p build
-	mkdir -p temp
+all : INIT GATEWAY SENSOR1 SENSOR2 SENSOR3
 
-sensor_server:data_server.c  gateway.c my_queue.c linkedlist.c statistic.c tcpsocket.c thread.c
-	gcc -Wall -DSET_QUEUE_SIZE=$(QUEUE_SIZE) -o build/server data_server.c my_queue.c  $(MYSQL_CFLAGS) $(MYSQL_LIBS)  gateway.c linkedlist.c statistic.c tcpsocket.c thread.c  -lpthread
+#INIT
+INIT:
+	mkdir -p $(BUILDDIR)
+	mkdir -p $(TEMPDIR)
 
-sensor_client:clientsensor.c gateway.c linkedlist.c statistic.c tcpsocket.c thread.c 
-	gcc -Wall -o build/sensorNode clientsensor.c  gateway.c linkedlist.c statistic.c tcpsocket.c thread.c  -lpthread
-	
-log_server:log-server.c
-	gcc -Wall -o build/log log-server.c
+#BUILDDIR
+tcpsocket.o : tcpsocket.c tcpsocket.h 
+	gcc $< $(CFLAGS) -c -o $(BUILDDIR)/$@
+queue.o : queue.c queue.h
+	gcc $< $(CFLAGS) -lpthread -c -o $(BUILDDIR)/$@ 
+sensor_db.o : sensor_db.c sensor_db.h
+	gcc $< $(CFLAGS) -lpthread $(MYSQL_CFLAGS) $(MYSQL_LIBS) -c -o $(BUILDDIR)/$@
 
-run_server : build/server
-	echo $(mysql_server)
-	./build/server 1234 $(mysql_server)
-run_client1 : build/sensorNode
-	./build/sensorNode 127.0.0.1 1234 11
-run_client2 : build/sensorNode
-	./build/sensorNode 127.0.0.1 1234 22
-run_client3 : build/sensorNode
-	./build/sensorNode 127.0.0.1 1234 33
-run_log : build/log
-	./build/log
+$(SHRLIB) : list.c list.h
+	gcc $(CFLAGS) -fPIC -shared $^ -o $(BUILDDIR)/$@ 
+	sudo cp $(BUILDDIR)/$@ $(SHRLIBDIR)
+	sudo ldconfig
+
+GATEWAY : gateway.c $(OBJ)
+	gcc $^ $(CFLAGS) -DDEBUG -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHRLIBDIR) -lmylist -o $(BUILDDIR)/$@
+
+SENSOR1 : sensor_node.c $(BUILDDIR)/tcpsocket.o
+	gcc $^ $(CFLAGS) -o $(BUILDDIR)/$@
+
+SENSOR2 : sensor_node.c $(BUILDDIR)/tcpsocket.o
+	gcc $^ $(CFLAGS) -o $(BUILDDIR)/$@
+
+SENSOR3 : sensor_node.c $(BUILDDIR)/tcpsocket.o
+	gcc $^ $(CFLAGS) -o $(BUILDDIR)/$@
+
+#run
+run_server : ./$(BUILDDIR)/GATEWAY
+	./$(BUILDDIR)/GATEWAY 1234 $(mysql_server)
+client1 :
+	./$(BUILDDIR)/SENSOR1 47 2 $(mysql_server) 1234
+client2 :
+	./$(BUILDDIR)/SENSOR2 77 2 $(mysql_server) 1234
+client3 :
+	./$(BUILDDIR)/SENSOR3 74 2 $(mysql_server) 1234
+
+#clean
 clean :
-	rm -r build
-	rm -r temp
+	rm -r $(BUILDDIR)
+	rm -r $(TEMPDIR)
 
-#sensor_client1:clientsensor.c gateway.c linkedlist.c statistic.c tcpsocket.c thread.c 
-#	gcc -Wall -DSET_ID=$(SET_ID1)  -o sensorNode clientsensor.c  gateway.c linkedlist.c #statistic.c tcpsocket.c thread.c  -lpthread
+#gcc gateway.c tcpsocket.c list.c queue.c sensor_db.c -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 -lpthread `mysql_config --cflags` `mysql_config --libs` -o build/gateway -lpthread -DDEBUG -DHOST=192.168.1.102
+#./build/gateway 1234
 
-
+#gcc sensor_node.c tcpsocket.c -o build/sensor -DSET_ID=777
+#./build/sensor 127.0.0.1 1234 

@@ -1,7 +1,6 @@
 #ifndef GATEWAY
 #define GATEWAY
 
-#include "linkedlist.h"
 #include <time.h>
 
 
@@ -16,7 +15,7 @@ typedef struct sensor_packet{
 	unsigned signbit:1;
 	unsigned value:12;
 	unsigned parity:1;
-}sensor_packet,*packet_ptr_t; 
+}sensor_packet,*tcp_packet_ptr_t; 
 
 typedef struct data_t{  
 	unsigned id:12;                         
@@ -31,7 +30,7 @@ typedef struct data_t{
 /*----------------------------------------------------
  * function prototype
  * --------------------------------------------------*/
-int parityCheck(packet_ptr_t  dataPacket);
+int parityCheck(tcp_packet_ptr_t  dataPacket);
 /*
 void init_array(list_ptr_t **);
 void destory_array(list_ptr_t **);

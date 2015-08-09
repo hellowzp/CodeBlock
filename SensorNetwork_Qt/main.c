@@ -29,7 +29,7 @@ int main( void )
    *c = 3;
    *d = 4;
 
-   Queue queue = NULL;
+   queue_ptr_t queue = NULL;
    queue = queue_create();
    queue_enqueue(queue, a);
    queue_enqueue(queue, b);
@@ -59,7 +59,11 @@ int main( void )
                                   &element_compare, &element_print);
    list_insert_at_index(list, a, 3);
    list_print(list);
-   list_insert_at_index(list, b, -3);
+   list_insert_at_index(list, b, -1);
+   list_print(list);
+   list_insert_at_index(list, c, 1);
+   list_print(list);
+   list_insert_at_index(list, d, 3);
    list_print(list);
 
    printf("%d %d\n", list_get_index_of_element(list,a),

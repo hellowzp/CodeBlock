@@ -43,6 +43,10 @@ list_ptr_t list_insert_at_index( list_ptr_t list, element_ptr_t element, int ind
 // If 'index' is bigger than the number of elements in 'list', the list node is inserted at the end of 'list'.
 // Returns NULL if memory allocation failed and list_errno is set to LIST_MEMORY_ERROR 
 
+list_ptr_t list_insert_at_front( list_ptr_t list, element_ptr_t element);
+
+list_ptr_t list_insert_at_end( list_ptr_t list, element_ptr_t element);
+
 list_ptr_t list_remove_at_index( list_ptr_t list, int index);
 // Removes the list node at index 'index' from 'list'. NO free() is called on the element pointer of the list node. 
 // If 'index' is 0 or negative, the first list node is removed. 

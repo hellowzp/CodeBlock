@@ -7,10 +7,10 @@
 #include <pthread.h>
 #include <string.h>
 
-#ifndef DEBUG
+#ifdef DEBUG
 #define DEBUG_PRINTF(...) do { fprintf( stderr, __VA_ARGS__); } while(0)
 #else
-#define DEBUG_PRINTF(msg)
+#define DEBUG_PRINTF(...)
 #endif
 
 /* The caller of the queue is responsible for implementing the functions below */
@@ -52,9 +52,9 @@ struct queue {
  * front and rear are init to QUEUE_SIZE,
  * which is invalid for index, so it means an empty queue
  */
-Queue queue_create()
+queue_ptr_t queue_create()
 {
-    Queue queue = (Queue)malloc(sizeof(struct queue));
+    queue_ptr_t queue = (queue_ptr_t)malloc(sizeof(queue_t));
     queue->elements=(element_ptr_t)malloc(QUEUE_SIZE * sizeof(QUEUE_ELEMENT_SIZE));
     queue->front = QUEUE_SIZE;
     queue->rear = QUEUE_SIZE;
@@ -65,7 +65,7 @@ Queue queue_create()
 /**
  * Note that the special case when rear < front for a circular queue
  */
-void queue_free(Queue* queue)
+void queue_free(queue_ptr_t* queue)
 {
     assert(queue!=NULL && *queue!=NULL);
 
@@ -101,7 +101,7 @@ void queue_free(Queue* queue)
 /**
  * Note that the special case when rear < front for a circular queue
  */
-void queue_enqueue(Queue queue, element_ptr_t element)
+void queue_enqueue(queue_ptr_t queue, element_ptr_t element)
 {
     assert(queue!=NULL && element!=NULL);
 
@@ -154,7 +154,7 @@ void queue_enqueue(Queue queue, element_ptr_t element)
 /**
  * Note that the special case when rear < front for a circular queue
  */
-int queue_size(Queue queue)
+int queue_size(queue_ptr_t queue)
 {
     assert(queue!=NULL);
     if(queue->front==queue->capacity) return 0;
@@ -162,13 +162,13 @@ int queue_size(Queue queue)
     return size<0 ? queue->capacity + size +1 : size+1;
 }
 
-element_ptr_t queue_top(Queue queue){
+element_ptr_t queue_top(queue_ptr_t queue){
     assert(queue!=NULL);
     if(queue_size(queue)==0) return NULL;
     return queue->elements + queue->front * QUEUE_ELEMENT_SIZE;
 }
 
-void queue_dequeue(Queue queue)
+void queue_dequeue(queue_ptr_t queue)
 {
     assert(queue!=NULL);
 
@@ -185,7 +185,7 @@ void queue_dequeue(Queue queue)
     }
 }
 
-void queue_print(Queue queue)
+void queue_print(queue_ptr_t queue)
 {
     assert(queue!=NULL);
     printf("\n*****Print Queue*****\nQueue size: %d %d %d\n",

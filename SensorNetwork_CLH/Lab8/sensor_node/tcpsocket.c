@@ -30,7 +30,7 @@
 #define MAX_PORT 65536
  
 #define	PROTOCOLFAMILY	AF_INET		// internet protocol suite
-#define	TYPE		SOCK_STREAM	    // streaming protool type
+#define	TYPE		SOCK_STREAM	// streaming protool type
 #define	PROTOCOL	IPPROTO_TCP 	// TCP protocol 
 
 typedef struct {

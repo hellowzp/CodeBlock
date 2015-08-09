@@ -14,7 +14,9 @@ SOURCES += main.c \
     tcpsocket.c \
     thread.c \
     queue.c \
-    list.c
+    list.c \
+    sensor_db.c \
+    sensor_node.c
 
 include(deployment.pri)
 qtcAddDeployment()
@@ -29,8 +31,10 @@ HEADERS += \
     thread.h \
     queue.h \
     list.h \
-    util.h
+    util.h \
+    sensor_db.h
 
 OTHER_FILES += \
-    makefile
+    makefile \
+    db.sql
 

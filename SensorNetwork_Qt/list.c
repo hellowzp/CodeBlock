@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 
 int list_errno;
 
@@ -57,7 +58,7 @@ void list_free( list_ptr_t* list ) {
     }
     free(*list);
     *list = NULL;
-    DEBUG_PRINTF("\n%s\n","List free succeed!");
+    DEBUG_PRINTF("%s\n","List free succeed!");
 }
 
 int list_size( list_ptr_t list ){
@@ -70,7 +71,7 @@ list_ptr_t list_insert_at_index( list_ptr_t list, element_ptr_t element, int ind
     int size = list_size(list);
     list_node_ptr_t new_node;
     MALLOC(new_node, sizeof(list_node_t) );
-    list->copy_func( &(new_node->element), element);
+    list->copy_func( &new_node->element, element);
 
     if(index<=0) {
         list_node_ptr_t first_node = list->head;
@@ -96,7 +97,9 @@ list_ptr_t list_insert_at_index( list_ptr_t list, element_ptr_t element, int ind
             last_node->next = new_node;
             new_node->prev = last_node;
             new_node->next = NULL;
+            DEBUG_PRINTF("list add element in the end");
         } else {
+            DEBUG_PRINTF("empty list add element in the end");
             list->head = new_node;
             new_node->prev = NULL;
             new_node->next = NULL;
@@ -104,6 +107,15 @@ list_ptr_t list_insert_at_index( list_ptr_t list, element_ptr_t element, int ind
     }
 
     list->size ++;
+    return list;
+}
+
+list_ptr_t list_insert_at_front( list_ptr_t list, element_ptr_t element ){
+    return list_insert_at_index( list, element, -1);
+}
+
+list_ptr_t list_insert_at_end( list_ptr_t list, element_ptr_t element ){
+    return list_insert_at_index( list, element, INT_MAX);
 }
 
 list_ptr_t list_remove_at_index( list_ptr_t list, int index) {
@@ -149,6 +161,7 @@ list_node_ptr_t list_get_reference_at_index( list_ptr_t list, int index ){
     int i = 0;
     while(i<index && node!=NULL) {
         node = node->next;
+        i++;
     }
     return node;
 }

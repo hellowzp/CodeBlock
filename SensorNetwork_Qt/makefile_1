@@ -40,7 +40,8 @@ clean :
 	rm -r build
 	rm -r temp
 
-#sensor_client1:clientsensor.c gateway.c linkedlist.c statistic.c tcpsocket.c thread.c 
-#	gcc -Wall -DSET_ID=$(SET_ID1)  -o sensorNode clientsensor.c  gateway.c linkedlist.c #statistic.c tcpsocket.c thread.c  -lpthread
+#gcc gateway.c tcpsocket.c list.c myqueue.c sensor_db.c -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 -lpthread `mysql_config --cflags` `mysql_config --libs` -o gateway -lpthread -DDEBUG 
+#./gateway 1234
 
-
+#gcc sensor_node.c tcpsocket.c -o sensor -DSET_ID=777
+#./sensor 127.0.0.1 1234 

@@ -4,13 +4,13 @@
 typedef void* element_ptr_t;
 
 typedef struct queue queue_t;
-typedef struct queue* Queue;
+typedef struct queue * queue_ptr_t;
 
 /*
  ** The default queue size is 5
  */
 #ifndef QUEUE_SIZE
-    #define QUEUE_SIZE 5
+    #define QUEUE_SIZE 20
 #endif
 
 /*
@@ -18,41 +18,41 @@ typedef struct queue* Queue;
  **  Return a pointer to the newly created queue
  **  Returns NULL if queue creation failed
  */
-Queue queue_create();
+queue_ptr_t queue_create();
 
 /*  
  **  Add an element to the queue
  **  Does nothing if queue is full
  */
-void queue_enqueue(Queue queue, element_ptr_t element);
+void queue_enqueue(queue_ptr_t queue, element_ptr_t element);
 
 /*
  **  Delete the queue from memory; set queue to NULL
  **  The queue can no longer be used unless queue_create is called again
  */
-void queue_free(Queue* queue);
+void queue_free(queue_ptr_t* queue);
 
 /*
  **  Return the number of elements in the queue
  */
-int queue_size(Queue queue);
+int queue_size(queue_ptr_t queue);
 
 /*
  **  Return a pointer to the top element in the queue
  **  Returns NULL if queue is empty
  */
-element_ptr_t queue_top(Queue queue);
+element_ptr_t queue_top(queue_ptr_t queue);
 
 /*
  **  Remove the top element from the queue
  **  Does nothing if queue is empty
  */
-void queue_dequeue(Queue queue);
+void queue_dequeue(queue_ptr_t queue);
 
 /*
  **  Print all elements in the queue, starting from the front element
  */
-void queue_print(Queue queue);
+void queue_print(queue_ptr_t queue);
 
 #endif //MYQUEUE_
 
