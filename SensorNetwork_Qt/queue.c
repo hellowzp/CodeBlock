@@ -14,9 +14,9 @@
 #endif
 
 /* The caller of the queue is responsible for implementing the functions below */
-extern void element_print(element_ptr_t element);
-extern void element_copy(element_ptr_t* dest_element, element_ptr_t src_element);
-extern void element_free(element_ptr_t* element);
+extern void queue_element_print(element_ptr_t element);
+extern void queue_element_copy(element_ptr_t* dest_element, element_ptr_t src_element);
+extern void queue_element_free(element_ptr_t* element);
 
 extern const unsigned int QUEUE_ELEMENT_SIZE;
 
@@ -75,20 +75,20 @@ void queue_free(queue_ptr_t* queue)
         int i = 0;
         for( i=0; i< (*queue)->rear; i++ ){
             element_ptr_t current_element = elements + i * QUEUE_ELEMENT_SIZE;
-            element_free(&current_element);
+            queue_element_free(&current_element);
         }
 
         elements += (*queue)->front * QUEUE_ELEMENT_SIZE;
         for( i=0; i< (*queue)->capacity - (*queue)->front; i++ ){
             element_ptr_t current_element = elements + i * QUEUE_ELEMENT_SIZE;
-            element_free(&current_element);
+            queue_element_free(&current_element);
         }
     } else {
         element_ptr_t elements = (*queue)->elements + (*queue)->rear * QUEUE_ELEMENT_SIZE;
         int i = 0;
         for( i=0; i< (*queue)->rear - (*queue)->front; i++ ){
             element_ptr_t current_element = elements + i * QUEUE_ELEMENT_SIZE;
-            element_free(&current_element);
+            queue_element_free(&current_element);
         }
     }
 
@@ -108,7 +108,7 @@ void queue_enqueue(queue_ptr_t queue, element_ptr_t element)
     int size = queue_size(queue);
     if(size==0){
         queue->front = queue->rear = 0;
-        element_copy(&queue->elements, element);
+        queue_element_copy(&queue->elements, element);
     } else if(size==queue->capacity) {
 
         unsigned int newCapacity = queue->capacity * 2;
@@ -138,7 +138,7 @@ void queue_enqueue(queue_ptr_t queue, element_ptr_t element)
             queue->elements = newBlock;
             queue->capacity = newCapacity;
             element_ptr_t newAddr = newBlock + queue->rear * QUEUE_ELEMENT_SIZE;
-            element_copy( &newAddr, element);
+            queue_element_copy( &newAddr, element);
         } else {
             fprintf( stderr, "\n%s!!\n\n","Queue reallocate memory failed");
         }
@@ -147,7 +147,7 @@ void queue_enqueue(queue_ptr_t queue, element_ptr_t element)
         if(queue->rear==queue->capacity)
             queue->rear = 0;
         element_ptr_t rear_element = queue->elements + queue->rear * QUEUE_ELEMENT_SIZE;
-        element_copy( &rear_element, element);
+        queue_element_copy( &rear_element, element);
     }
 }
 
@@ -197,7 +197,7 @@ void queue_print(queue_ptr_t queue)
     unsigned int i;
     for( i=queue->front; i<=rear; i++ ){
         element_ptr_t e = get_valid_element( queue->elements, i, queue->capacity);
-        element_print(e);
+        queue_element_print(e);
     }
     printf("\n%s\n\n", "*****Print Finished*****");
 }

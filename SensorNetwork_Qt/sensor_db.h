@@ -12,7 +12,7 @@
 #endif
 
 #ifndef DATABASE
-#define DATABASE a13_syssoft
+#define DATABASE "a13_syssoft"
 #endif
 
 #ifndef USER
@@ -24,9 +24,7 @@
 #endif
 
 #else
-#ifndef HOST
-#define HOST "localhost"
-#endif
+#define HOST "192.168.1.102"
 #define DATABASE "lu_xuemei"
 #define USER "remote_root"
 #define PASSWORD "secret"
@@ -40,7 +38,7 @@
  * If the table existed, clear up the existing data if clear_up_flag is set to 1
  * return the connection for success, NULL if an error occurs
  */
-MYSQL *init_connection(char clear_up_flag);
+MYSQL *init_connection();
 
 /*
  * Disconnect MySQL database

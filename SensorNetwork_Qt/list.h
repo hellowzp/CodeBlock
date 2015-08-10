@@ -29,7 +29,7 @@ list_ptr_t list_create 	( // callback functions
 // Returns a pointer to a newly-allocated list.
 // Returns NULL if memory allocation failed and list_errno is set to LIST_MEMORY_ERROR 
 
-void list_free( list_ptr_t* list );
+void list_fFree( list_ptr_t* list );
 // Every list node and node element of the list needs to be deleted (free memory)
 // The list itself also needs to be deleted (free all memory) and set to NULL
 
@@ -72,9 +72,27 @@ element_ptr_t list_get_element_at_index( list_ptr_t list, int index );
 // If 'index' is bigger than the number of elements in 'list', the element of the last list node is returned.
 // If the list is empty, NULL is returned.
 
+element_ptr_t list_get_element_at_reference( list_ptr_t list, list_node_ptr_t ref );
+
 int list_get_index_of_element( list_ptr_t list, element_ptr_t element );
 // Returns an index to the first list node in 'list' containing 'element'.  
 // If 'element' is not found in 'list', -1 is returned.
+
+list_node_ptr_t list_get_first_reference( list_ptr_t list );
+// Returns a reference to the first list node of 'list'.
+// If the list is empty, NULL is returned.
+
+list_node_ptr_t list_get_last_reference( list_ptr_t list );
+// Returns a reference to the last list node of 'list'.
+// If the list is empty, NULL is returned.
+
+list_node_ptr_t list_get_next_reference( list_ptr_t list, list_node_ptr_t reference );
+// Returns a reference to the next list node of the list node with reference 'reference' in 'list'.
+// If the next element doesn't exists, NULL is returned.
+
+list_node_ptr_t list_get_previous_reference( list_ptr_t list, list_node_ptr_t reference );
+// Returns a reference to the previous list node of the list node with reference 'reference' in 'list'.
+// If the previous element doesn't exists, NULL is returned.
 
 void list_print( list_ptr_t list );
 // for testing purposes: print the entire list on screen
@@ -106,22 +124,6 @@ void list_print( list_ptr_t list );
   // Finds the first list node in 'list' that contains 'element' and removes the list node from 'list'. 
   // NO free() is called on the element pointer of the list node.
   // If the list is empty, return list and list_errno is set to LIST_EMPTY_ERROR
-  
-  list_node_ptr_t list_get_first_reference( list_ptr_t list );
-  // Returns a reference to the first list node of 'list'. 
-  // If the list is empty, NULL is returned.
-
-  list_node_ptr_t list_get_last_reference( list_ptr_t list );
-  // Returns a reference to the last list node of 'list'. 
-  // If the list is empty, NULL is returned.
-
-  list_node_ptr_t list_get_next_reference( list_ptr_t list, list_node_ptr_t reference );
-  // Returns a reference to the next list node of the list node with reference 'reference' in 'list'. 
-  // If the next element doesn't exists, NULL is returned.
-
-  list_node_ptr_t list_get_previous_reference( list_ptr_t list, list_node_ptr_t reference );
-  // Returns a reference to the previous list node of the list node with reference 'reference' in 'list'. 
-  // If the previous element doesn't exists, NULL is returned.
 
   element_ptr_t list_get_element_at_reference( list_ptr_t list, list_node_ptr_t reference );
   // Returns the element pointer contained in the list node with reference 'reference' in 'list'. 

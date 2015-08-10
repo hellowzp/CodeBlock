@@ -7,6 +7,13 @@
 #include <string.h>
 #include <limits.h>
 
+
+/**
+ * Note: struct defined in c file instead of header can't be imported
+ * So the internal member is invisible to the outside,
+ * thus corresponding functions should be provided to make it visible
+ */
+
 int list_errno;
 
 struct list_node {
@@ -19,7 +26,7 @@ struct list_node {
  * copy_func should first allocate memory for the destination pointer
  * free_func and print_func should do nothing if NULL parameter passed
  */
-struct list{
+struct list {
     list_node_ptr_t head;
     unsigned int size;
     void (*copy_func)(element_ptr_t* dest, element_ptr_t src);
@@ -27,7 +34,6 @@ struct list{
     int (*compare_func)(element_ptr_t x, element_ptr_t y);
     void (*print_func)(element_ptr_t element);
 };
-
 
 list_ptr_t list_create( // callback functions
 			  void (*element_copy)(element_ptr_t *dest_element, element_ptr_t src_element),
@@ -47,7 +53,7 @@ list_ptr_t list_create( // callback functions
     return list;
 }
 			
-void list_free( list_ptr_t* list ) {
+void list_fFree( list_ptr_t* list ) {
     assert(list && *list);
     list_node_ptr_t node = (*list)->head;
     while(node!=NULL) {
@@ -176,6 +182,11 @@ element_ptr_t list_get_element_at_index( list_ptr_t list, int index ){
     return node ? node->element : NULL;
 }
 
+element_ptr_t list_get_element_at_reference( list_ptr_t list, list_node_ptr_t ref ){
+    assert( list && ref);
+    return ref->element;
+}
+
 int list_get_index_of_element( list_ptr_t list, element_ptr_t element ){
     assert(list);
     list_node_ptr_t node = list->head;
@@ -191,6 +202,25 @@ int list_get_index_of_element( list_ptr_t list, element_ptr_t element ){
     return j;
 }
 
+list_node_ptr_t list_get_first_reference( list_ptr_t list ) {
+    assert(list);
+    return list->head;
+}
+
+list_node_ptr_t list_get_last_reference( list_ptr_t list ) {
+    return list_get_reference_at_index(list, INT_MAX);
+}
+
+list_node_ptr_t list_get_next_reference( list_ptr_t list, list_node_ptr_t reference ) {
+    assert( list && reference );
+    return reference->next;
+}
+
+list_node_ptr_t list_get_previous_reference( list_ptr_t list, list_node_ptr_t reference ) {
+    assert( list && reference );
+    return reference->prev;
+}
+
 void list_print( list_ptr_t list ){
     assert(list);
     printf("\n*****Print LIst*****\nList size: %d\n", list_size(list));
@@ -201,3 +231,4 @@ void list_print( list_ptr_t list ){
     }
     printf("\n%s\n\n", "*****Print Finished*****");
 }
+
