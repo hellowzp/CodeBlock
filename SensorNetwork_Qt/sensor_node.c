@@ -49,7 +49,7 @@
 #endif
 
 #define INITIAL_TEMPERATURE 	20
-#define TEMP_DEV 		5	// max afwijking vorige temperatuur in 0.1 celsius
+#define TEMP_DEV 		5	// max temperature change in 0.1 celsius
 
 
 void print_help(void);

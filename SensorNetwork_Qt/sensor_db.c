@@ -81,9 +81,4 @@ void print_result(MYSQL_RES *result) {
 void free_result(MYSQL_RES* result) {
 	mysql_free_result(result);
 }
-  
-  
-  
-  
-
 
