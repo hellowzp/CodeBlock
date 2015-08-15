@@ -280,7 +280,7 @@ static void* client_response(void* client) {
             char* msg;
             MALLOC(msg,80);
             snprintf(msg, 80, "Warning: abnormal temperature %4.2f @ Room %d Sensor %d",
-                     temperature, sensor_id, sensor_id % 10);
+                     temperature, sensor_id % 10, sensor_id);
             send_log_msg(fifo_write_fds, msg);
             free(msg);
         }
@@ -314,9 +314,9 @@ static void* data_manage(void* arg) {
         if(top) {
             DEBUG_PRINT("insert sensor data to list: %d %d %ld\n",top->id,top->tmp,top->ts);
             list_node_ptr_t node = list_get_first_reference(sensor_list);
-            list_element_ptr_t element;
+            list_element_ptr_t e;
             while(node) {
-                list_element_ptr_t e = (list_element_ptr_t)list_get_element_at_index(sensor_list, 0);
+                e = (list_element_ptr_t)list_get_element_at_reference(sensor_list, node);
                 if( e && e->sensor_id == top->id ){
                     break;
                 } else {
@@ -325,16 +325,15 @@ static void* data_manage(void* arg) {
             }
 
             if(node) {
-                element = list_get_element_at_reference(sensor_list, node);
-                element->avg_tmp = element->avg_tmp / 1.25f + top->tmp / 50.0f;
-                element->ts = top->ts;
+                e->avg_tmp = e->avg_tmp / 1.25f + top->tmp / 50.0f;
+                e->ts = top->ts;
             } else {
-                MALLOC(element, sizeof(list_element_t));
-                element->sensor_id = top->id;
-                element->room_id = top->id % 10;
-                element->avg_tmp = top->tmp / 10.0f;
-                element->ts = top->ts;
-                list_insert_at_end(sensor_list, element);
+                MALLOC(e, sizeof(list_element_t));
+                e->sensor_id = top->id;
+                e->room_id = top->id % 10;
+                e->avg_tmp = top->tmp / 10.0f;
+                e->ts = top->ts;
+                list_insert_at_end(sensor_list, e);
             }
             list_print(sensor_list);
 
@@ -366,6 +365,7 @@ static void* storage_manage(void* arg) {
         exit(EXIT_FAILURE);
     } else {
         DEBUG_PRINT("%s\n","mysql connection created..");
+        send_log_msg(fifo_write_fds,"mysql server connection succeed");
     }
 	
     while(1) {
@@ -378,9 +378,9 @@ static void* storage_manage(void* arg) {
             DEBUG_PRINT("insert sensor data to database: %d %d %ld\n",top->id,top->tmp,top->ts);
             if(insert_sensor(mysql, top->id, top->tmp, top->ts)==0) {
                 DEBUG_PRINT("%s\n","write to mysql successfully...");
-                MYSQL_RES* res = find_sensor_all(mysql);
-                print_result(res);
-                free_result(res);
+//                MYSQL_RES* res = find_sensor_all(mysql);
+//                print_result(res);
+//                free_result(res);
                 top->statu ++;
             }
             if(top->statu==2) {
@@ -390,6 +390,7 @@ static void* storage_manage(void* arg) {
     }
 	
     DEBUG_PRINTF("%s","storage management thread stopped...\n");
+    send_log_msg(fifo_write_fds,"mysql server connection broken");
 	pthread_exit((void*)("storage management thread stopped...")); //better to describe thread exit status
 }
 

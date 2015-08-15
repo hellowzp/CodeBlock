@@ -41,7 +41,7 @@ GATEWAY : gateway.c $(OBJ)
 	gcc $^ $(CFLAGS) -DDEBUG -DSET_MIN_TEMP=5 -DSET_MAX_TEMP=35 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHRLIBDIR) -lmylist -o $(BUILDDIR)/$@
 
 SENSORNODE : sensor_node.c $(BUILDDIR)/tcpsocket.o
-	gcc $^ $(CFLAGS) -DDEBUG -DLOG_SENSOR_DATA -DLOOPS=4 -o $(BUILDDIR)/$@
+	gcc $^ $(CFLAGS) -DDEBUG -DLOG_SENSOR_DATA -DLOOPS=5 -o $(BUILDDIR)/$@
 
 #run
 run_server : ./$(BUILDDIR)/GATEWAY
