@@ -38,6 +38,7 @@ int port;
 int fifo_write_fds;
 float min_tmp;
 float max_tmp;
+bool sql;
 queue_ptr_t sensor_queue;
 list_ptr_t sensor_list;
 pthread_mutex_t list_mutex;
@@ -132,6 +133,8 @@ int main(int argv, char* args[]) {
        printf("invalid port\n");
        exit(-2);
     }
+
+    sql = false;
     
     atexit( clean_before_exit );
     sensor_queue = queue_create();
@@ -338,7 +341,7 @@ static void* data_manage(void* arg) {
             list_print(sensor_list);
 
             top->statu ++;
-            if(top->statu >= 2) {
+            if(top->statu >= 2 || !sql) {
                 queue_dequeue(sensor_queue);
             }
         }
@@ -365,6 +368,7 @@ static void* storage_manage(void* arg) {
         exit(EXIT_FAILURE);
     } else {
         DEBUG_PRINT("%s\n","mysql connection created..");
+        sql = true;
         send_log_msg(fifo_write_fds,"mysql server connection succeed");
     }
 	
