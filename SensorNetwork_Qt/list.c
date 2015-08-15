@@ -103,9 +103,9 @@ list_ptr_t list_insert_at_index( list_ptr_t list, element_ptr_t element, int ind
             last_node->next = new_node;
             new_node->prev = last_node;
             new_node->next = NULL;
-            DEBUG_PRINTF("list add element in the end");
+            DEBUG_PRINTF("list add element in the end\n");
         } else {
-            DEBUG_PRINTF("empty list add element in the end");
+            DEBUG_PRINTF("empty list add element in the end\n");
             list->head = new_node;
             new_node->prev = NULL;
             new_node->next = NULL;
@@ -223,7 +223,7 @@ list_node_ptr_t list_get_previous_reference( list_ptr_t list, list_node_ptr_t re
 
 void list_print( list_ptr_t list ){
     assert(list);
-    printf("\n*****Print LIst*****\nList size: %d\n", list_size(list));
+    printf("\n*****Print List*****\nList size: %d\n", list_size(list));
     list_node_ptr_t node = list->head;
     while(node!=NULL) {
         list->print_func( node->element );

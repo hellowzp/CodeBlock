@@ -12,8 +12,8 @@ CFLAGS = -DDEBUG -Wall -Wno-unused-variable -Wno-unused-function
 MYSQL_CFLAGS = -I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing -g -DNDEBUG
 MYSQL_LIBS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
 
-#MYSQL_CFLAGS := $(mysql_config --cflags)
-#MYSQL_LIBS := $(mysql_config --libs)
+#MYSQL_CFLAGS = $(mysql_config --cflags)
+#MYSQL_LIBS = $(mysql_config --libs)
 
 .PHONY: all clean
 
@@ -38,10 +38,10 @@ $(BUILDDIR)/$(SHRLIB) : list.c list.h
 	sudo ldconfig
 
 GATEWAY : gateway.c $(OBJ)
-	gcc $^ $(CFLAGS) -DSET_MIN_TEMP=17 -DSET_MAX_TEMP=23 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHRLIBDIR) -lmylist -o $(BUILDDIR)/$@
+	gcc $^ $(CFLAGS) -DDEBUG -DSET_MIN_TEMP=5 -DSET_MAX_TEMP=35 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHRLIBDIR) -lmylist -o $(BUILDDIR)/$@
 
 SENSORNODE : sensor_node.c $(BUILDDIR)/tcpsocket.o
-	gcc $^ $(CFLAGS) -DLOOPS=5 -o $(BUILDDIR)/$@
+	gcc $^ $(CFLAGS) -DDEBUG -DLOG_SENSOR_DATA -DLOOPS=4 -o $(BUILDDIR)/$@
 
 #run
 run_server : ./$(BUILDDIR)/GATEWAY

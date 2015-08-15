@@ -22,7 +22,7 @@
 // conditional compilation option to log all sensor data to a text file
 #ifdef LOG_SENSOR_DATA
 
-  #define LOG_FILE	"sensor_log"
+  #define LOG_FILE	"temp/sensorNode_log"
 
   #define LOG_OPEN()						\
     FILE *fp_log; 						\
@@ -36,8 +36,8 @@
 
   #define LOG_PRINTF(sensor_id,temperature,timestamp)							\
       do { 												\
-	fprintf(fp_log, "%" PRIu16 " %g %ld\n", (sensor_id), (temperature), (long int)(timestamp));	\
-	fflush(fp_log);											\
+        fprintf(fp_log, "%" PRIu16 " %g %ld\n", (sensor_id), (temperature), (long int)(timestamp));	\
+        fflush(fp_log);											\
       } while(0)
 
   #define LOG_CLOSE()	fclose(fp_log);	
@@ -49,7 +49,7 @@
 #endif
 
 #define INITIAL_TEMPERATURE 	20
-#define TEMP_DEV 		5	// max temperature change in 0.1 celsius
+#define TEMP_DEV 		40	// max temperature change in 0.1 celsius
 
 
 void print_help(void);
@@ -63,7 +63,7 @@ void print_help(void);
 
 int main( int argc, char *argv[] )
 {
-  double temperature = INITIAL_TEMPERATURE;
+  double temperature;
   uint16_t sensor_id;
   time_t timestamp;
   long int sleep_time;
@@ -97,7 +97,7 @@ int main( int argc, char *argv[] )
   i=LOOPS;
   while(i) 
   {
-    temperature = temperature + TEMP_DEV * ((drand48() - 0.5)/10); 
+    temperature = INITIAL_TEMPERATURE + TEMP_DEV * (drand48() - 0.5);
     time(&timestamp);
     // send data to server in this order (!!): <sensor_id><temperature><timestamp>
     // remark: don't send as a struct!

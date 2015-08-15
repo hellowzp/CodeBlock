@@ -20,15 +20,6 @@ extern void queue_element_free(element_ptr_t* element);
 
 extern const unsigned int QUEUE_ELEMENT_SIZE;
 
-/**   Implementation Notes:
- *  queue_top operation only returns the element pointer and doesn't do any copy
- *  queue_deque only change the front of the queue, so before a deque operation,
- *  queue_top should be performed to get the element pointer so as to avoid potential
- *  memory leakage if the elment contains a pointer inside its structure
- *  because queue_free only frees the elements with indices from front to rear.
- */
-
-
 /**
  * get the valid element of the circular queue at index,
  * the index may be out of bound of the queue memory.
@@ -45,7 +36,7 @@ struct queue {
   element_ptr_t elements; // dynamic array containing data elements
   unsigned int front, rear; // the two elements indices
   unsigned int capacity;  //the current total dynamic capacity
-  pthread_mutex_t mutex;
+  pthread_rwlock_t rwlock;
 };
 
 /**
@@ -59,6 +50,7 @@ queue_ptr_t queue_create()
     queue->front = QUEUE_SIZE;
     queue->rear = QUEUE_SIZE;
     queue->capacity = QUEUE_SIZE;
+    queue->rwlock = (pthread_rwlock_t)PTHREAD_RWLOCK_INITIALIZER;
     return queue;
 }
 
@@ -67,6 +59,7 @@ queue_ptr_t queue_create()
  */
 void queue_free(queue_ptr_t* queue)
 {
+    pthread_rwlock_wrlock( &(*queue)->rwlock );
     assert(queue!=NULL && *queue!=NULL);
 
     // piece-wise free if front > rear
@@ -92,7 +85,9 @@ void queue_free(queue_ptr_t* queue)
         }
     }
 
-    free( (*queue)->elements);
+    free( (*queue)->elements );
+    pthread_rwlock_unlock( &(*queue)->rwlock );
+    pthread_rwlock_destroy( &(*queue)->rwlock );
     free(*queue);
     *queue = NULL;
     DEBUG_PRINTF("\n%s\n","Queue free succeed!");
@@ -103,6 +98,7 @@ void queue_free(queue_ptr_t* queue)
  */
 void queue_enqueue(queue_ptr_t queue, element_ptr_t element)
 {
+    pthread_rwlock_wrlock( &queue->rwlock );
     assert(queue!=NULL && element!=NULL);
 
     int size = queue_size(queue);
@@ -149,6 +145,7 @@ void queue_enqueue(queue_ptr_t queue, element_ptr_t element)
         element_ptr_t rear_element = queue->elements + queue->rear * QUEUE_ELEMENT_SIZE;
         queue_element_copy( &rear_element, element);
     }
+    pthread_rwlock_unlock( &queue->rwlock );
 }
 
 /**
@@ -156,37 +153,49 @@ void queue_enqueue(queue_ptr_t queue, element_ptr_t element)
  */
 int queue_size(queue_ptr_t queue)
 {
+    pthread_rwlock_rdlock( &queue->rwlock );
     assert(queue!=NULL);
     if(queue->front==queue->capacity) return 0;
     int size = queue->rear - queue->front;
-    return size<0 ? queue->capacity + size +1 : size+1;
+    size = size<0 ? queue->capacity + size +1 : size+1;
+    pthread_rwlock_unlock( &queue->rwlock );
+    return size;
 }
 
 element_ptr_t queue_top(queue_ptr_t queue){
+    pthread_rwlock_rdlock( &queue->rwlock );
     assert(queue!=NULL);
     if(queue_size(queue)==0) return NULL;
-    return queue->elements + queue->front * QUEUE_ELEMENT_SIZE;
+    element_ptr_t e = queue->elements + queue->front * QUEUE_ELEMENT_SIZE;
+    pthread_rwlock_unlock( &queue->rwlock );
+    return e;
 }
 
 void queue_dequeue(queue_ptr_t queue)
 {
     assert(queue!=NULL);
-
     int size = queue_size(queue);
     if(size==0) {
         printf("%s\n", "Invalid peration: dequeue an empty queue");
         return;
-    } else if (size==1) { // only one element, make it to the initial empty state
+    }
+
+    element_ptr_t top = queue_top(queue);
+    queue_element_free(&top);
+    pthread_rwlock_wrlock( &queue->rwlock );
+    if(size==1) { // only one element, make it to the initial empty state
         queue->front = queue->rear = queue->capacity;
     } else {
         queue->front ++;
         if(queue->front==queue->capacity)
             queue->front = 0;
-    }
+    }   
+    pthread_rwlock_unlock( &queue->rwlock );
 }
 
 void queue_print(queue_ptr_t queue)
 {
+    pthread_rwlock_rdlock( &queue->rwlock );
     assert(queue!=NULL);
     printf("\n*****Print Queue*****\nQueue size: %d %d %d\n",
            queue_size(queue), queue->front, queue->rear);
@@ -200,6 +209,7 @@ void queue_print(queue_ptr_t queue)
         queue_element_print(e);
     }
     printf("\n%s\n\n", "*****Print Finished*****");
+    pthread_rwlock_unlock( &queue->rwlock );
 }
 
 static element_ptr_t get_valid_element(const element_ptr_t start_element_addr,

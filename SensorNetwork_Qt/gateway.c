@@ -1,3 +1,4 @@
+#define _GNU_SOURCE  // NON-STANDARD fcloseall
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -63,7 +64,7 @@ int list_element_compare_by_id(element_ptr_t x, element_ptr_t y) {
 void list_element_print(element_ptr_t element) {
     if(element) {
         list_element_ptr_t e = (list_element_ptr_t)element;
-        printf("list element: sensor_id(%d) room_id(%d) temperature(%4.2f) @ %s",
+        printf("sensor_id(%d) room_id(%d) temperature(%3.1f) @ %s",
                e->sensor_id, e->room_id, e->avg_tmp, asctime(localtime(&e->ts)));
     }
 }
@@ -83,12 +84,9 @@ void queue_element_print(element_ptr_t element){
         e->id, e->tmp, asctime(localtime(&e->ts)));
 }
 
-void sig_kill_child(int sig) {
-    if(sig == SIGHUP) {
-        exit(EXIT_SUCCESS);
-        DEBUG_PRINTF("child killed by signal");
-    }
-}
+static void sig_kill_child(int sig);
+
+static void clean_before_exit(void);
 
 static int sem_id = 0;
 union semun {
@@ -135,6 +133,7 @@ int main(int argv, char* args[]) {
        exit(-2);
     }
     
+    atexit( clean_before_exit );
     sensor_queue = queue_create();
     sensor_list = list_create( &list_element_copy, &list_element_free,
                                &list_element_compare_by_id, &list_element_print);
@@ -255,15 +254,9 @@ static void* tcp_connect(void* arg) {
     pthread_exit((void*)"tcp connection thread return successfully...");
 }
 
-static void client_cleanup_if_stopped(void* arg) {
-	printf("%s\n","client clean up...");
-	wait(NULL);
-}
-
 static void* client_response(void* client) {
     DEBUG_PRINTF("%s\n","new client thread created.\n");
     send_log_msg(fifo_write_fds, "new sensor node connected");
-	//pthread_cleanup_push(client_cleanup_if_stopped,NULL);
 	
     uint16_t sensor_id;
     double temperature;
@@ -280,8 +273,16 @@ static void* client_response(void* client) {
         bytes = tcp_receive( client, (void *)&timestamp, sizeof(timestamp));
         assert( (bytes == sizeof(timestamp)) || (bytes == 0) );
         if (bytes) {
-          printf("sensor id = %" PRIu16 " - temperature = %g - timestamp = %ld\n",
+          printf("server received new data:\nsensor id = %" PRIu16 " - temperature = %g - timestamp = %ld\n",
                   sensor_id, temperature, (long int)timestamp );
+        }
+        if(temperature<=min_tmp || temperature>=max_tmp) {
+            char* msg;
+            MALLOC(msg,80);
+            snprintf(msg, 80, "Warning: abnormal temperature %4.2f @ Room %d Sensor %d",
+                     temperature, sensor_id, sensor_id % 10);
+            send_log_msg(fifo_write_fds, msg);
+            free(msg);
         }
 
         sensor_data->id = sensor_id;
@@ -290,8 +291,8 @@ static void* client_response(void* client) {
         sensor_data->statu = 0;
         queue_enqueue(sensor_queue, sensor_data);
         queue_print(sensor_queue);
-        semaphore_v();
         DEBUG_PRINT("semaphore_v\n");
+        semaphore_v(); semaphore_v(); // two threads waiting
 
       } while (bytes);
 	
@@ -303,20 +304,20 @@ static void* client_response(void* client) {
 
 
 static void* data_manage(void* arg) {
-    DEBUG_PRINTF("%s","data management thread created...\n");
+    DEBUG_PRINTF("data management thread created...\n");
     while(1) {
         semaphore_p();
         DEBUG_PRINT("semaphore_p\n");
-        DEBUG_PRINT("%s\n","queue top...");
-        sensor_data_ptr_t sdp = (sensor_data_ptr_t)queue_top(sensor_queue);
-        DEBUG_PRINT("%s %p\n","queue top finished...",sdp);
-        if(sdp) {
-            DEBUG_PRINT("insert sensor data to list: %d %d %ld\n",sdp->id,sdp->tmp,sdp->ts);
+        DEBUG_PRINT("queue top...\n");
+        sensor_data_ptr_t top = (sensor_data_ptr_t)queue_top(sensor_queue);
+        DEBUG_PRINT("%s %p\n","queue top finished...",top);
+        if(top) {
+            DEBUG_PRINT("insert sensor data to list: %d %d %ld\n",top->id,top->tmp,top->ts);
             list_node_ptr_t node = list_get_first_reference(sensor_list);
             list_element_ptr_t element;
             while(node) {
                 list_element_ptr_t e = (list_element_ptr_t)list_get_element_at_index(sensor_list, 0);
-                if( e && e->sensor_id == sdp->id ){
+                if( e && e->sensor_id == top->id ){
                     break;
                 } else {
                     node = list_get_next_reference(sensor_list, node);
@@ -325,22 +326,21 @@ static void* data_manage(void* arg) {
 
             if(node) {
                 element = list_get_element_at_reference(sensor_list, node);
-                element->avg_tmp = ( element->avg_tmp * 4 + sdp->tmp ) / 5;
-                element->ts = sdp->ts;
+                element->avg_tmp = element->avg_tmp / 1.25f + top->tmp / 50.0f;
+                element->ts = top->ts;
             } else {
                 MALLOC(element, sizeof(list_element_t));
-                element->sensor_id = sdp->id;
-                element->room_id = sdp->id % 10;
-                element->avg_tmp = sdp->tmp;
-                element->ts = sdp->ts;
+                element->sensor_id = top->id;
+                element->room_id = top->id % 10;
+                element->avg_tmp = top->tmp / 10.0f;
+                element->ts = top->ts;
                 list_insert_at_end(sensor_list, element);
             }
             list_print(sensor_list);
 
-            sdp->statu ++;
-            if(sdp->statu>=2) {
+            top->statu ++;
+            if(top->statu >= 2) {
                 queue_dequeue(sensor_queue);
-                queue_element_free( (element_ptr_t*)&sdp);
             }
         }
     }
@@ -372,31 +372,25 @@ static void* storage_manage(void* arg) {
         semaphore_p();
         DEBUG_PRINT("semaphore_p\n");
         DEBUG_PRINT("%s\n","queue top...");
-        sensor_data_ptr_t sdp = (sensor_data_ptr_t)queue_top(sensor_queue);
-        DEBUG_PRINT("%s %p\n","queue top finished...",sdp);
-        if(sdp) {
-            DEBUG_PRINT("insert sensor data to mysql: %d %d %ld\n",sdp->id,sdp->tmp,sdp->ts);
-            if(insert_sensor(mysql, sdp->id, sdp->tmp, sdp->ts)==0) {
+        sensor_data_ptr_t top = (sensor_data_ptr_t)queue_top(sensor_queue);
+        DEBUG_PRINT("%s %p\n","queue top finished...",top);
+        if(top) {
+            DEBUG_PRINT("insert sensor data to database: %d %d %ld\n",top->id,top->tmp,top->ts);
+            if(insert_sensor(mysql, top->id, top->tmp, top->ts)==0) {
                 DEBUG_PRINT("%s\n","write to mysql successfully...");
                 MYSQL_RES* res = find_sensor_all(mysql);
                 print_result(res);
                 free_result(res);
-                sdp->statu ++;
+                top->statu ++;
             }
-            if(sdp->statu==2) {
+            if(top->statu==2) {
                 queue_dequeue(sensor_queue);
-                queue_element_free( (element_ptr_t*)&sdp);
             }
         }
     }
 	
     DEBUG_PRINTF("%s","storage management thread stopped...\n");
 	pthread_exit((void*)("storage management thread stopped...")); //better to describe thread exit status
-}
-
-static void child_cleanup(int signo) {
-	printf("signal %d %s\n",signo,"child begin to exit...");
-	exit(EXIT_FAILURE);
 }
 
 static void send_log_msg(int fds, const char* info) {
@@ -455,5 +449,25 @@ static int semaphore_v()
 		return 0;
 	}
 	return 1;
+}
+
+static void child_cleanup(int signo) {
+    printf("signal %d %s\n",signo,"child begin to exit...");
+    exit(EXIT_FAILURE);
+}
+
+static void sig_kill_child(int sig) {
+    if(sig == SIGHUP) {
+        exit(EXIT_SUCCESS);
+        DEBUG_PRINTF("child killed by signal");
+    }
+}
+
+static void clean_before_exit(void) {
+    DEBUG_PRINT("free resource before exit...\n");
+    queue_free(&sensor_queue);
+    list_fFree(&sensor_list);
+    del_semvalue();
+    fcloseall();
 }
 
