@@ -1,6 +1,7 @@
-#define _GNU_SOURCE  // NON-STANDARD fcloseall
+#define _GNU_SOURCE   // NON-STANDARD fcloseall
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>  // bool type
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
@@ -25,12 +26,6 @@
 
 #define FIFO_NAME "temp/logfifo"
 #define LOG_FILE "temp/gateway.log"
-
-#ifdef DEBUG
-    #define ARGNUM 3
-#else
-    #define ARGNUM 2
-#endif
 
 const unsigned int QUEUE_ELEMENT_SIZE = sizeof(sensor_data_t);
 
@@ -110,7 +105,7 @@ static void child_cleanup(int signo);
 static void send_log_msg(int fds, const char* info);
 
 int main(int argv, char* args[]) {
-    if(argv!=ARGNUM) {
+    if(argv!=2) {
 		printf("usage: %s %s\n",args[0],"port");
 		exit(EXIT_FAILURE);
 	} 
@@ -308,13 +303,14 @@ static void* client_response(void* client) {
 
 static void* data_manage(void* arg) {
     DEBUG_PRINTF("data management thread created...\n");
+    sleep(2); // let sql thread run first
     while(1) {
         semaphore_p();
         DEBUG_PRINT("semaphore_p\n");
         DEBUG_PRINT("queue top...\n");
         sensor_data_ptr_t top = (sensor_data_ptr_t)queue_top(sensor_queue);
         DEBUG_PRINT("%s %p\n","queue top finished...",top);
-        if(top) {
+        if( top && (top->statu | 0x80) == 0 ) { // not yet read by this thread
             DEBUG_PRINT("insert sensor data to list: %d %d %ld\n",top->id,top->tmp,top->ts);
             list_node_ptr_t node = list_get_first_reference(sensor_list);
             list_element_ptr_t e;
@@ -340,10 +336,12 @@ static void* data_manage(void* arg) {
             }
             list_print(sensor_list);
 
-            top->statu ++;
-            if(top->statu >= 2 || !sql) {
+            top->statu |= 0x80;
+            if( top->statu | 0x01 || !sql) {
                 queue_dequeue(sensor_queue);
             }
+        } else {
+            sleep(1);  // already read by this thread, let the sql thread read
         }
     }
 	
@@ -378,18 +376,20 @@ static void* storage_manage(void* arg) {
         DEBUG_PRINT("%s\n","queue top...");
         sensor_data_ptr_t top = (sensor_data_ptr_t)queue_top(sensor_queue);
         DEBUG_PRINT("%s %p\n","queue top finished...",top);
-        if(top) {
+        if( top && (top->statu & 0x01) == 0) {  // not yet read by this thread
             DEBUG_PRINT("insert sensor data to database: %d %d %ld\n",top->id,top->tmp,top->ts);
             if(insert_sensor(mysql, top->id, top->tmp, top->ts)==0) {
                 DEBUG_PRINT("%s\n","write to mysql successfully...");
 //                MYSQL_RES* res = find_sensor_all(mysql);
 //                print_result(res);
 //                free_result(res);
-                top->statu ++;
+                top->statu |= 0x01;
             }
-            if(top->statu==2) {
+            if(top->statu & 0x80) {
                 queue_dequeue(sensor_queue);
             }
+        } else {
+            sleep(1);
         }
     }
 	

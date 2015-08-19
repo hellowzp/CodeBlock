@@ -25,13 +25,13 @@
 
 #else
 #define HOST "192.168.1.102"
-#define DATABASE "lu_xuemei"
+#define DATABASE "sensors"
 #define USER "remote_root"
 #define PASSWORD "secret"
 
 #endif
 
-#define TABLE_NAME "sensor"
+#define TABLE_NAME "lu_xuemei"
 /*
  * Make a connection to MySQL database
  * Create a table named 'yourname' if the table does not exist

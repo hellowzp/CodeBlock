@@ -30,7 +30,7 @@ $(BUILDDIR)/tcpsocket.o : tcpsocket.c tcpsocket.h
 $(BUILDDIR)/queue.o : queue.c queue.h
 	gcc $< $(CFLAGS) -lpthread -c -o $@ 
 $(BUILDDIR)/sensor_db.o : sensor_db.c sensor_db.h
-	gcc $< $(CFLAGS) $(MYSQL_CFLAGS) $(MYSQL_LIBS) -c -o $@
+	gcc $< $(CFLAGS) -DGROUPT $(MYSQL_CFLAGS) $(MYSQL_LIBS) -c -o $@
 
 $(BUILDDIR)/$(SHRLIB) : list.c list.h
 	gcc $(CFLAGS) -fPIC -shared $^ -o $@ 
@@ -45,7 +45,7 @@ SENSORNODE : sensor_node.c $(BUILDDIR)/tcpsocket.o
 
 #run
 run_server : ./$(BUILDDIR)/GATEWAY
-	./$(BUILDDIR)/GATEWAY 1234 $(mysql_server)
+	./$(BUILDDIR)/GATEWAY 1234
 run_client1 :
 	./$(BUILDDIR)/SENSORNODE 47 2 127.0.0.1 1234
 run_client2 :
@@ -57,6 +57,7 @@ run_client3 :
 clean :
 	rm -r $(BUILDDIR)
 	rm -r $(TEMPDIR)
+	sudo rm $(SHRLIBDIR)
 
 #gcc gateway.c tcpsocket.c list.c queue.c sensor_db.c -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 -lpthread `mysql_config --cflags` `mysql_config --libs` -o build/gateway -lpthread -DDEBUG
 #./build/gateway 1234 mysql_server=192.168.1.102
