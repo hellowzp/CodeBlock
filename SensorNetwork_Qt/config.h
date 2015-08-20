@@ -27,40 +27,5 @@ typedef struct {   // lab 6
     sensor_ts_t ts;
 } list_element_t, *list_element_ptr_t;
 
-/*
-typedef struct {
-    unsigned id:12;
-	unsigned seq:6;
-	unsigned sign:1;
-	unsigned tem:12;
-    unsigned parity:1;       // use even parity: total number of 1 is even
-} tcp_packet_list_t, *tcp_packet_ptr_t;   // for tcp packet
-
-typedef union {
-    tcp_packet_list_t pkt_seg;
-	unsigned int pkt_whole;  //align 
-} packet_union_t;
-
-typedef struct {
-    tcp_packet_list_t pkt;
-    time_t tms;
-} tcp_packet_list_t, *tcp_packet_list_ptr_t;  // final real list data type
-
-typedef struct {
-    uint32_t id;
-    uint32_t size;
-    list_ptr_t lptr;
-} extended_list_t, * xlist_ptr_t;
-
-typedef struct {
-    xlist_ptr_t data;
-    list_ptr_t prev;
-    list_ptr_t next;
-} list_array_t, *list_array_ptr_t;
-*/
-
-typedef unsigned char Byte;
-typedef Byte* String;
-
 #endif /* _CONFIG_H_ */
 

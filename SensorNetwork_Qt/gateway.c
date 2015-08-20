@@ -310,7 +310,7 @@ static void* data_manage(void* arg) {
         DEBUG_PRINT("queue top...\n");
         sensor_data_ptr_t top = (sensor_data_ptr_t)queue_top(sensor_queue);
         DEBUG_PRINT("%s %p\n","queue top finished...",top);
-        if( top && (top->statu | 0x80) == 0 ) { // not yet read by this thread
+        if( top && (top->statu & 0x80) == 0 ) { // not yet read by this thread
             DEBUG_PRINT("insert sensor data to list: %d %d %ld\n",top->id,top->tmp,top->ts);
             list_node_ptr_t node = list_get_first_reference(sensor_list);
             list_element_ptr_t e;
@@ -340,8 +340,9 @@ static void* data_manage(void* arg) {
             if( top->statu | 0x01 || !sql) {
                 queue_dequeue(sensor_queue);
             }
-        } else {
-            sleep(1);  // already read by this thread, let the sql thread read
+        } else {	// already read by this thread, let the other thread read
+            semaphore_v();
+			sleep(1);  
         }
     }
 	
@@ -388,7 +389,8 @@ static void* storage_manage(void* arg) {
             if(top->statu & 0x80) {
                 queue_dequeue(sensor_queue);
             }
-        } else {
+        } else {	// already read by this thread, let the other thread read
+            semaphore_v();
             sleep(1);
         }
     }
