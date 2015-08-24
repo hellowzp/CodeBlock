@@ -17,7 +17,7 @@ MYSQL_LIBS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl
 
 .PHONY: all clean
 
-all : INIT $(OBJ) $(BUILDDIR)/$(SHRLIB) GATEWAY SENSORNODE
+all : INIT $(OBJ) $(BUILDDIR)/$(SHRLIB) GATEWAY SENSORNODE MAIN
 
 #init
 INIT:
@@ -29,7 +29,7 @@ $(BUILDDIR)/tcpsocket.o : tcpsocket.c tcpsocket.h
 	gcc $< $(CFLAGS) -c -o $@
 $(BUILDDIR)/queue.o : queue.c queue.h
 	gcc $< $(CFLAGS) -lpthread -c -o $@ 
-$(BUILDDIR)/sensor_db.o : sensor_db.c sensor_db.h
+$(BUILDDIR)/sensor_db.o : sensor_db.c sensor_db.h util.h
 	gcc $< $(CFLAGS) -DGROUPT $(MYSQL_CFLAGS) $(MYSQL_LIBS) -c -o $@
 
 $(BUILDDIR)/$(SHRLIB) : list.c list.h util.h
@@ -43,6 +43,9 @@ GATEWAY : gateway.c $(OBJ)
 SENSORNODE : sensor_node.c $(BUILDDIR)/tcpsocket.o
 	gcc $^ $(CFLAGS) -DDEBUG -DLOG_SENSOR_DATA -DLOOPS=5 -o $(BUILDDIR)/$@
 
+MAIN : main.c list.c queue.c list.h queue.h util.h
+	gcc main.c list.c queue.c -lpthread -DDEBUG -o $(BUILDDIR)/main.out
+
 #run
 run_server : ./$(BUILDDIR)/GATEWAY
 	./$(BUILDDIR)/GATEWAY 1234
@@ -52,6 +55,9 @@ run_client2 :
 	./$(BUILDDIR)/SENSORNODE 77 2 127.0.0.1 1234
 run_client3 :
 	./$(BUILDDIR)/SENSORNODE 74 2 127.0.0.1 1234
+
+test : 
+	./$(BUILDDIR)/main.out
 
 #clean
 clean :

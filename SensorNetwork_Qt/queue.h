@@ -7,10 +7,10 @@ typedef struct queue queue_t;
 typedef struct queue * queue_ptr_t;
 
 /*
- ** The default queue size is 5
+ ** The default queue size is 10
  */
 #ifndef INITIAL_QUEUE_SIZE
-    #define INITIAL_QUEUE_SIZE 20
+    #define INITIAL_QUEUE_SIZE 10
 #endif
 
 /*

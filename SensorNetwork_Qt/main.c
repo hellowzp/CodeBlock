@@ -32,7 +32,7 @@ int main( void )
 
    queue_ptr_t queue = NULL;
    queue = queue_create();
-   queue_enqueue(queue, a);
+   printf("queue top: %p\n", queue_top(queue));
    queue_enqueue(queue, b);
    queue_enqueue(queue, c);
    queue_enqueue(queue, d);
@@ -56,22 +56,24 @@ int main( void )
 
    printf("%d %d %d\n",*a,*b, queue_element_compare(a,b));
 
-   list_ptr_t list = list_create( &queue_element_copy, &queue_element_free,
-                                  &queue_element_compare, &queue_element_print);
-   list_insert_at_index(list, a, 3);
-   list_print(list);
-   list_insert_at_index(list, b, -1);
-   list_print(list);
-   list_insert_at_index(list, c, 1);
-   list_print(list);
-   list_insert_at_index(list, d, 3);
-   list_print(list);
+//   list_ptr_t list = list_create( &queue_element_copy, &queue_element_free,
+//                                  &queue_element_compare, &queue_element_print);
+//   list_insert_at_index(list, a, 3);
+//   list_print(list);
+//   list_insert_at_index(list, b, -1);
+//   list_print(list);
+//   list_insert_at_index(list, c, 1);
+//   list_print(list);
+//   list_insert_at_index(list, d, 3);
+//   list_print(list);
 
-   printf("%d %d\n", list_get_index_of_element(list,a),
-                     list_get_index_of_element(list,c));
+//   printf("%d %d\n", list_get_index_of_element(list,a),
+//                     list_get_index_of_element(list,c));
+
+//   queue_free(&queue);
+//   list_fFree(&list);
 
    queue_free(&queue);
-   list_fFree(&list);
 
    free(a);
    free(b);
@@ -100,14 +102,12 @@ void queue_element_print(element_ptr_t element)
 
 /*
  * Copy the content (e.g. all fields of a struct) of src_element to dst_element.
- * dest_element should point to allocated memory - no memory allocation will be done in this function
+ * dest_element alredy points to allocated memory - no memory allocation will be done in this function
  * If the defition of element_ptr_t changes, then this code needs to change as well.
  */
 void queue_element_copy(element_ptr_t* dest_element, element_ptr_t src_element)
 {
-    assert(src_element && dest_element);
-    if(*dest_element==NULL)
-        MALLOC( *dest_element, sizeof(int) );
+    assert(src_element && dest_element && *dest_element);
     memcpy(*dest_element, src_element, sizeof(int));
 }
 
