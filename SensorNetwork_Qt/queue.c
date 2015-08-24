@@ -26,9 +26,9 @@ static inline element_ptr_t get_element_at_index(const queue_ptr_t queue, unsign
  * The real definition of 'struct queue'
  */
 struct queue {
-  element_ptr_t elements; // dynamic array containing data elements
+  element_ptr_t elements;   // dynamic array containing data elements
   unsigned int front, rear; // the two elements indices
-  unsigned int capacity;  //the current total dynamic capacity
+  unsigned int capacity;    //the current total dynamic capacity
   pthread_rwlock_t rwlock;
 };
 
@@ -64,7 +64,7 @@ void queue_free(queue_ptr_t* queue)
              i++, j++ )
         {
             element = get_element_at_index(*queue,i);
-            queue_element_free(&element);
+            queue_element_free(&element);   // will probably free NULL but OK here
             element = get_element_at_index(*queue,j);
             queue_element_free(&element);
         }
@@ -188,7 +188,7 @@ void queue_print(queue_ptr_t queue)
     assert(queue!=NULL);
     printf("\n*****Print Queue*****\nQueue size: %d %d %d\n",
            queue_size(queue), queue->front, queue->rear);
-    if( queue->front < queue->rear ){
+    if( queue->front <= queue->rear ){
         unsigned int i = 0;
         element_ptr_t e;
         for( i=queue->front; i<=queue->rear; i++ ){

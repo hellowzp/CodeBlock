@@ -47,7 +47,7 @@ void list_element_copy(element_ptr_t* des, element_ptr_t src) {
 }
 
 void list_element_free(element_ptr_t* element){
-    DEBUG_PRINTF("free element @%p\n", element);
+    DEBUG_PRINT("free element @%p\n", *element);
 }
 
 int list_element_compare_by_id(element_ptr_t x, element_ptr_t y) {
@@ -71,7 +71,7 @@ void queue_element_copy(element_ptr_t* des, element_ptr_t src) {
 }
 
 void queue_element_free(element_ptr_t* element){
-    DEBUG_PRINTF("free element @%p\n", *element);
+    DEBUG_PRINT("free element @%p\n", *element);
 }
 
 void queue_element_print(element_ptr_t element){
@@ -156,7 +156,6 @@ int main(int argv, char* args[]) {
 	
     pid_t pid = fork();
     if(pid>0) {
-        sleep(2);   //let the child open fifo for read first
         int pfds = open(FIFO_NAME, O_WRONLY);
         while(pfds<0) {
             perror("parent open fifo for writing error");
@@ -168,6 +167,10 @@ int main(int argv, char* args[]) {
             }
         }
         fifo_write_fds = pfds;
+        DEBUG_PRINT("parent open fifo for writing\n");
+
+        //ensure child already open fifo for read before parent creating thread to write to fifo
+        sleep(2);
 		
         pthread_t pth_tcp_con, pth_data_man, pth_strg_man;
         int err;
@@ -205,6 +208,8 @@ int main(int argv, char* args[]) {
         if (fifo_read_fds<0) {
             perror("child open fifo for reading error");
             exit(EXIT_FAILURE);
+        } else {
+            DEBUG_PRINT("child open fifo for reading\n");
         }
 		
         int log_fds = open(LOG_FILE, O_CREAT | O_WRONLY | O_APPEND, S_IRWXU | S_IRWXG);
@@ -232,10 +237,11 @@ int main(int argv, char* args[]) {
 
 
 static void* tcp_connect(void* arg) {
-    DEBUG_PRINTF("%s\n","tcp connection thread created.");
+    DEBUG_PRINT("tcp connection thread created.\n");
     Socket server = tcp_passive_open(port);
+    DEBUG_PRINT("server waiting for new client...\n");
+
     while (1) {
-        DEBUG_PRINTF("%s\n","server waiting for new client...");
         pthread_t resp;
         Socket client = tcp_wait_for_connection(server);
 		if(client) {
@@ -253,7 +259,7 @@ static void* tcp_connect(void* arg) {
 }
 
 static void* client_response(void* client) {
-    DEBUG_PRINTF("%s\n","new client thread created.\n");
+    DEBUG_PRINT("new client thread created.\n");
     send_log_msg(fifo_write_fds, "new sensor node connected");
 	
     uint16_t sensor_id;
@@ -271,7 +277,7 @@ static void* client_response(void* client) {
         bytes = tcp_receive( client, (void *)&timestamp, sizeof(timestamp));
         assert( (bytes == sizeof(timestamp)) || (bytes == 0) );
         if (bytes) {
-          printf("server received new data:\nsensor id = %" PRIu16 " - temperature = %g - timestamp = %ld\n",
+          printf("\nserver received new data:\nsensor id = %" PRIu16 " - temperature = %g - timestamp = %ld\n",
                   sensor_id, temperature, (long int)timestamp );
         }
         if(temperature<=min_tmp || temperature>=max_tmp) {
@@ -286,7 +292,7 @@ static void* client_response(void* client) {
         sensor_data->id = sensor_id;
         sensor_data->tmp = (sensor_value_t)(temperature * 10);
         sensor_data->ts = timestamp;
-        sensor_data->statu = 0;
+        sensor_data->state = 0;
         queue_enqueue(sensor_queue, sensor_data);
         queue_print(sensor_queue);
         DEBUG_PRINT("semaphore_v\n");
@@ -302,15 +308,15 @@ static void* client_response(void* client) {
 
 
 static void* data_manage(void* arg) {
-    DEBUG_PRINTF("data management thread created...\n");
-    sleep(2); // let sql thread run first
+    DEBUG_PRINT("data management thread created...\n");
+    sleep(2); // let sql thread run first to create mysql connection
     while(1) {
         semaphore_p();
+        sleep(1); // let sql thread read first
         DEBUG_PRINT("semaphore_p\n");
-        DEBUG_PRINT("queue top...\n");
         sensor_data_ptr_t top = (sensor_data_ptr_t)queue_top(sensor_queue);
-        DEBUG_PRINT("%s %p\n","queue top finished...",top);
-        if( top && (top->statu & 0x80) == 0 ) { // not yet read by this thread
+        DEBUG_PRINT("queue top @%p %d\n",top,top->state);
+        if( (top->state & 0x80) == 0 ) { // not yet read by this thread
             DEBUG_PRINT("insert sensor data to list: %d %d %ld\n",top->id,top->tmp,top->ts);
             list_node_ptr_t node = list_get_first_reference(sensor_list);
             list_element_ptr_t e;
@@ -336,23 +342,25 @@ static void* data_manage(void* arg) {
             }
             list_print(sensor_list);
 
-            top->statu |= 0x80;
-            if( top->statu | 0x01 || !sql) {
-                queue_dequeue(sensor_queue);
-            }
-        } else {	// already read by this thread, let the other thread read
-            semaphore_v();
-			sleep(1);  
+            top->state |= 0x80;
+            DEBUG_PRINT("read queue top finished @%p %d\n",top,top->state);
+        } else {
+            DEBUG_PRINT("queue top element @%p already read by this thread\n", top);
+            semaphore_v(); // unnecessary read, compensate the semaphore
+        }
+
+        if( top->state & 0x01 || !sql) {
+            queue_dequeue(sensor_queue);
         }
     }
 	
-    DEBUG_PRINTF("%s","data management thread stopped...\n");
+    DEBUG_PRINTF("data management thread stopped...\n");
 	pthread_exit((void*)("data management thread stopped...")); //better to describe thread exit status
 }
 
 
 static void* storage_manage(void* arg) {
-    DEBUG_PRINTF("%s\n","mysql thread created..");
+    DEBUG_PRINT("mysql thread created.\n");
     MYSQL* mysql = init_connection();
     if(!mysql) {
         int i = 3; //AUTO-RECONNECTION
@@ -364,9 +372,10 @@ static void* storage_manage(void* arg) {
 
     if(!mysql) {
         send_log_msg(fifo_write_fds,"mysql server connection failed");
+        DEBUG_PRINTF("mysql connection failed..\n");
         exit(EXIT_FAILURE);
     } else {
-        DEBUG_PRINT("%s\n","mysql connection created..");
+        DEBUG_PRINT("mysql connection created..\n");
         sql = true;
         send_log_msg(fifo_write_fds,"mysql server connection succeed");
     }
@@ -374,28 +383,32 @@ static void* storage_manage(void* arg) {
     while(1) {
         semaphore_p();
         DEBUG_PRINT("semaphore_p\n");
-        DEBUG_PRINT("%s\n","queue top...");
         sensor_data_ptr_t top = (sensor_data_ptr_t)queue_top(sensor_queue);
-        DEBUG_PRINT("%s %p\n","queue top finished...",top);
-        if( top && (top->statu & 0x01) == 0) {  // not yet read by this thread
+        DEBUG_PRINT("queue top @%p %d\n",top,top->state);
+        if( (top->state & 0x01) == 0) {  // not yet read by this thread
             DEBUG_PRINT("insert sensor data to database: %d %d %ld\n",top->id,top->tmp,top->ts);
             if(insert_sensor(mysql, top->id, top->tmp, top->ts)==0) {
                 DEBUG_PRINT("%s\n","write to mysql successfully...");
-//                MYSQL_RES* res = find_sensor_all(mysql);
-//                print_result(res);
-//                free_result(res);
-                top->statu |= 0x01;
+                top->state |= 0x01;
+                sql = true;
+            } else {
+                sql = false;
             }
+            DEBUG_PRINT("read queue top finished @%p %d\n",top,top->state);
+            /* leave the job of dequeue to data management thread only
+             * to avoid the problem of dequeue twice
             if(top->statu & 0x80) {
                 queue_dequeue(sensor_queue);
             }
+            */
         } else {	// already read by this thread, let the other thread read
+            DEBUG_PRINT("queue top element @%p already read by this thread\n", top);
             semaphore_v();
             sleep(1);
         }
     }
 	
-    DEBUG_PRINTF("%s","storage management thread stopped...\n");
+    DEBUG_PRINTF("storage management thread stopped...\n");
     send_log_msg(fifo_write_fds,"mysql server connection broken");
 	pthread_exit((void*)("storage management thread stopped...")); //better to describe thread exit status
 }

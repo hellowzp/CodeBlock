@@ -32,7 +32,7 @@ $(BUILDDIR)/queue.o : queue.c queue.h
 $(BUILDDIR)/sensor_db.o : sensor_db.c sensor_db.h
 	gcc $< $(CFLAGS) -DGROUPT $(MYSQL_CFLAGS) $(MYSQL_LIBS) -c -o $@
 
-$(BUILDDIR)/$(SHRLIB) : list.c list.h
+$(BUILDDIR)/$(SHRLIB) : list.c list.h util.h
 	gcc $(CFLAGS) -fPIC -shared $^ -o $@ 
 	sudo cp $@ $(SHRLIBDIR)
 	sudo ldconfig
@@ -57,7 +57,7 @@ run_client3 :
 clean :
 	rm -r $(BUILDDIR)
 	rm -r $(TEMPDIR)
-	sudo rm $(SHRLIBDIR)
+	rm $(SHRLIBDIR)/$(SHRLIB)
 
 #gcc gateway.c tcpsocket.c list.c queue.c sensor_db.c -DSET_MIN_TEMP=0 -DSET_MAX_TEMP=30 -lpthread `mysql_config --cflags` `mysql_config --libs` -o build/gateway -lpthread -DDEBUG
 #./build/gateway 1234 mysql_server=192.168.1.102

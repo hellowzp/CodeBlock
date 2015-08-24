@@ -8,7 +8,9 @@ SOURCES += gateway.c \
     queue.c \
     list.c \
     sensor_db.c \
-    sensor_node.c
+    sensor_node.c \
+    main.c \
+    test.c
 
 include(deployment.pri)
 qtcAddDeployment()

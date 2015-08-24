@@ -2,15 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>
 
 #include "util.h"
 #include "queue.h"
 #include "list.h"
 
-void element_print(element_ptr_t element);
-void element_copy(element_ptr_t* dest_element, element_ptr_t src_element);
-void element_free(element_ptr_t* element);
-int  element_compare(element_ptr_t x, element_ptr_t y) {
+void queue_element_print(element_ptr_t element);
+void queue_element_copy(element_ptr_t* dest_element, element_ptr_t src_element);
+void queue_element_free(element_ptr_t* element);
+int  queue_element_compare(element_ptr_t x, element_ptr_t y) {
     return *(int*)x > *(int*)y ? 1 :
            *(int*)x < *(int*)y ? -1 : 0;
 }
@@ -53,10 +54,10 @@ int main( void )
    queue_enqueue(queue, d);
    queue_print(queue);
 
-   printf("%d %d %d\n",*a,*b, element_compare(a,b));
+   printf("%d %d %d\n",*a,*b, queue_element_compare(a,b));
 
-   list_ptr_t list = list_create( &element_copy, &element_free,
-                                  &element_compare, &element_print);
+   list_ptr_t list = list_create( &queue_element_copy, &queue_element_free,
+                                  &queue_element_compare, &queue_element_print);
    list_insert_at_index(list, a, 3);
    list_print(list);
    list_insert_at_index(list, b, -1);
@@ -70,7 +71,7 @@ int main( void )
                      list_get_index_of_element(list,c));
 
    queue_free(&queue);
-   list_free(&list);
+   list_fFree(&list);
 
    free(a);
    free(b);
@@ -91,7 +92,7 @@ int main( void )
  * Print 1 element to stdout.
  * If the defition of element_ptr_t changes, then this code needs to change as well.
  */
-void element_print(element_ptr_t element)
+void queue_element_print(element_ptr_t element)
 {
     if(element) printf("%d ", *(int*)element);
 }
@@ -102,7 +103,7 @@ void element_print(element_ptr_t element)
  * dest_element should point to allocated memory - no memory allocation will be done in this function
  * If the defition of element_ptr_t changes, then this code needs to change as well.
  */
-void element_copy(element_ptr_t* dest_element, element_ptr_t src_element)
+void queue_element_copy(element_ptr_t* dest_element, element_ptr_t src_element)
 {
     assert(src_element && dest_element);
     if(*dest_element==NULL)
@@ -116,7 +117,7 @@ void element_copy(element_ptr_t* dest_element, element_ptr_t src_element)
  * because it's just part of the array of the circular queue
  * Otherwise do nothing
  */
-void element_free(element_ptr_t* element)
+void queue_element_free(element_ptr_t* element)
 {
 //    free(&element);
 }

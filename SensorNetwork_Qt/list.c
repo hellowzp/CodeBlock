@@ -64,7 +64,7 @@ void list_fFree( list_ptr_t* list ) {
     }
     free(*list);
     *list = NULL;
-    DEBUG_PRINTF("%s\n","List free succeed!");
+    DEBUG_PRINT("%s\n","List free succeed!");
 }
 
 int list_size( list_ptr_t list ){
@@ -103,9 +103,9 @@ list_ptr_t list_insert_at_index( list_ptr_t list, element_ptr_t element, int ind
             last_node->next = new_node;
             new_node->prev = last_node;
             new_node->next = NULL;
-            DEBUG_PRINTF("list add element in the end\n");
+            DEBUG_PRINT("list add element in the end\n");
         } else {
-            DEBUG_PRINTF("empty list add element in the end\n");
+            DEBUG_PRINT("empty list add element in the end\n");
             list->head = new_node;
             new_node->prev = NULL;
             new_node->next = NULL;

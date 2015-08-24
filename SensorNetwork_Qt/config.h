@@ -17,7 +17,7 @@ typedef struct {   // lab 6
 	sensor_id_t id;
     sensor_value_t tmp;
 	sensor_ts_t ts;
-    sensor_data_statu_t statu;
+    sensor_data_statu_t state;
 } sensor_data_t, *sensor_data_ptr_t;  // for queue element
 
 typedef struct {   // lab 6

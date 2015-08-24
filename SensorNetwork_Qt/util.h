@@ -22,8 +22,8 @@ there should be at most one preprocessor in one line
                 __FILE__, __LINE__, __func__, ##args);     \
     } while(0)
     #define DEBUG_PRINT(fmt, args...) do { \
-            printf("\n[Debug_Info] %s:%d: " fmt, \
-            __FILE__, __LINE__, ##args);     \
+            printf("\n[Debug_Info] %s:%d:%s(): " fmt, \
+            __FILE__, __LINE__, __func__, ##args);   \
     } while(0)
 #else
     #define DEBUG_PRINTF(fmt, args...) do {} while(0)
