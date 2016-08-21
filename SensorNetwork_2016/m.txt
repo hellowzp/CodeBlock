@@ -1,0 +1,20 @@
+[33m
+***** CPPCHECK connmgr.c *****[0m
+cppcheck --enable=all --suppress=missingIncludeSystem connmgr.c
+Checking connmgr.c...
+Checking connmgr.c: DEBUG...
+Checking usage of global functions..
+[33m
+***** COMPILING connmgr.c *****[0m
+mkdir -p tmp
+gcc -Wall -std=c11 -Werror -c -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o tmp/connmgr.o connmgr.c
+[33m
+***** CPPCHECK connmgr.c *****[0m
+cppcheck --enable=all --suppress=missingIncludeSystem connmgr.c
+Checking connmgr.c...
+Checking connmgr.c: DEBUG...
+Checking usage of global functions..
+[33m
+***** COMPILING connmgr.c *****[0m
+mkdir -p tmp
+gcc -Wall -std=c11 -Werror -c -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -ldplist -ltcpsock -lpthread -o tmp/connmgr.o connmgr.c

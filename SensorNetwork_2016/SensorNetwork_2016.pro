@@ -7,7 +7,6 @@ SOURCES += main.c \
     file_creator.c \
     lib/tcpsock.c \
     sensor_node.c \
-    gateway.c \
     connmgr.c \
     datamgr.c \
     sbuffer.c \
@@ -22,7 +21,8 @@ HEADERS += \
     sensor_db.h \
     lib/dplist.h \
     lib/tcpsock.h \
-    errmacros.h
+    errutil.h \
+    util.h
 
 OTHER_FILES += \
     Makefile

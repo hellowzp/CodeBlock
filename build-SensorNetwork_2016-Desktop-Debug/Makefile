@@ -49,20 +49,20 @@ SOURCES       = ../SensorNetwork_2016/main.c \
 		../SensorNetwork_2016/file_creator.c \
 		../SensorNetwork_2016/lib/tcpsock.c \
 		../SensorNetwork_2016/sensor_node.c \
-		../SensorNetwork_2016/gateway.c \
 		../SensorNetwork_2016/connmgr.c \
 		../SensorNetwork_2016/datamgr.c \
 		../SensorNetwork_2016/sbuffer.c \
-		../SensorNetwork_2016/sensor_db.c 
+		../SensorNetwork_2016/sensor_db.c \
+		../SensorNetwork_2016/lib/dplist.c 
 OBJECTS       = main.o \
 		file_creator.o \
 		tcpsock.o \
 		sensor_node.o \
-		gateway.o \
 		connmgr.o \
 		datamgr.o \
 		sbuffer.o \
-		sensor_db.o
+		sensor_db.o \
+		dplist.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/shell-unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
@@ -310,37 +310,25 @@ sensor_node.o: ../SensorNetwork_2016/sensor_node.c ../SensorNetwork_2016/config.
 		../SensorNetwork_2016/lib/tcpsock.h
 	$(CC) -c $(CFLAGS) $(INCPATH) -o sensor_node.o ../SensorNetwork_2016/sensor_node.c
 
-gateway.o: ../SensorNetwork_2016/gateway.c ../SensorNetwork_2016/config.h \
-		../SensorNetwork_2016/lib/dplist.h \
-		../SensorNetwork_2016/sbuffer.h \
-		../SensorNetwork_2016/lib/tcpsock.h \
-		../SensorNetwork_2016/sensor_db.h
-	$(CC) -c $(CFLAGS) $(INCPATH) -o gateway.o ../SensorNetwork_2016/gateway.c
-
 connmgr.o: ../SensorNetwork_2016/connmgr.c ../SensorNetwork_2016/config.h \
-		../SensorNetwork_2016/errmacros.h \
+		../SensorNetwork_2016/util.h \
 		../SensorNetwork_2016/sbuffer.h \
 		../SensorNetwork_2016/connmgr.h \
 		../SensorNetwork_2016/lib/tcpsock.h \
 		../SensorNetwork_2016/lib/dplist.h
 	$(CC) -c $(CFLAGS) $(INCPATH) -o connmgr.o ../SensorNetwork_2016/connmgr.c
 
-datamgr.o: ../SensorNetwork_2016/datamgr.c ../SensorNetwork_2016/errmacros.h \
-		../SensorNetwork_2016/config.h \
-		../SensorNetwork_2016/sbuffer.h \
-		../SensorNetwork_2016/datamgr.h \
-		../SensorNetwork_2016/lib/dplist.h
+datamgr.o: ../SensorNetwork_2016/datamgr.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o datamgr.o ../SensorNetwork_2016/datamgr.c
 
-sbuffer.o: ../SensorNetwork_2016/sbuffer.c ../SensorNetwork_2016/config.h \
-		../SensorNetwork_2016/sbuffer.h
+sbuffer.o: ../SensorNetwork_2016/sbuffer.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o sbuffer.o ../SensorNetwork_2016/sbuffer.c
 
-sensor_db.o: ../SensorNetwork_2016/sensor_db.c ../SensorNetwork_2016/errmacros.h \
-		../SensorNetwork_2016/config.h \
-		../SensorNetwork_2016/sbuffer.h \
-		../SensorNetwork_2016/sensor_db.h
+sensor_db.o: ../SensorNetwork_2016/sensor_db.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o sensor_db.o ../SensorNetwork_2016/sensor_db.c
+
+dplist.o: ../SensorNetwork_2016/lib/dplist.c 
+	$(CC) -c $(CFLAGS) $(INCPATH) -o dplist.o ../SensorNetwork_2016/lib/dplist.c
 
 ####### Install
 
