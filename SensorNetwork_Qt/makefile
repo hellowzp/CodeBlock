@@ -30,7 +30,7 @@ $(BUILDDIR)/tcpsocket.o : tcpsocket.c tcpsocket.h
 $(BUILDDIR)/queue.o : queue.c queue.h
 	gcc $< $(CFLAGS) -lpthread -c -o $@ 
 $(BUILDDIR)/sensor_db.o : sensor_db.c sensor_db.h util.h
-	gcc $< $(CFLAGS) -DGROUPT $(MYSQL_CFLAGS) $(MYSQL_LIBS) -c -o $@
+	gcc $< $(CFLAGS) $(MYSQL_CFLAGS) $(MYSQL_LIBS) -c -o $@
 
 $(BUILDDIR)/$(SHRLIB) : list.c list.h util.h
 	gcc $(CFLAGS) -fPIC -shared $^ -o $@ 
@@ -38,10 +38,10 @@ $(BUILDDIR)/$(SHRLIB) : list.c list.h util.h
 	sudo ldconfig
 
 GATEWAY : gateway.c $(OBJ)
-	gcc $^ $(CFLAGS) -DDEBUG -DSET_MIN_TEMP=5 -DSET_MAX_TEMP=35 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHRLIBDIR) -lmylist -o $(BUILDDIR)/$@
+	gcc $^ $(CFLAGS) -DSET_MIN_TEMP=5 -DSET_MAX_TEMP=35 $(MYSQL_CFLAGS) $(MYSQL_LIBS) -L$(SHRLIBDIR) -lmylist -o $(BUILDDIR)/$@
 
 SENSORNODE : sensor_node.c $(BUILDDIR)/tcpsocket.o
-	gcc $^ $(CFLAGS) -DDEBUG -DLOG_SENSOR_DATA -DLOOPS=5 -o $(BUILDDIR)/$@
+	gcc $^ $(CFLAGS) -DLOG_SENSOR_DATA -DLOOPS=5 -o $(BUILDDIR)/$@
 
 MAIN : main.c list.c queue.c list.h queue.h util.h
 	gcc main.c list.c queue.c -lpthread -DDEBUG -o $(BUILDDIR)/main.out

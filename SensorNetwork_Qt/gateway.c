@@ -47,6 +47,7 @@ void list_element_copy(element_ptr_t* des, element_ptr_t src) {
 }
 
 void list_element_free(element_ptr_t* element){
+    free(*element);
     DEBUG_PRINT("free element @%p\n", *element);
 }
 
@@ -76,8 +77,8 @@ void queue_element_free(element_ptr_t* element){
 
 void queue_element_print(element_ptr_t element){
     sensor_data_ptr_t e = (sensor_data_ptr_t)element;
-    printf("id:%d temperature:%d @ %s",
-        e->id, e->tmp, asctime(localtime(&e->ts)));
+    printf("@%p id:%d temperature:%d %s",
+        e, e->id, e->tmp, asctime(localtime(&e->ts)));
 }
 
 static void sig_kill_child(int sig);
