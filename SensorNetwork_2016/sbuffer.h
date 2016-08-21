@@ -10,6 +10,12 @@
 
 typedef struct sbuffer sbuffer_t;
 
+/*
+ * All data that can be stored in the sbuffer should be encapsulated in a
+ * structure, this structure can then also hold extra info needed for your implementation
+ */
+typedef struct sbuffer_data sbuffer_data_t;
+
 
 /*
  * Allocates and initializes a new shared buffer
@@ -26,18 +32,18 @@ int sbuffer_free(sbuffer_t ** buffer);
 
 
 /*
- * Removes the first sensor data in 'buffer' (at the 'head') and returns this sensor data as '*data'  
+ * Removes the first data in 'buffer' (at the 'head') and returns this data as '*data'  
  * 'data' must point to allocated memory because this functions doesn't allocated memory
- * If 'buffer' is empty, the function doesn't block until new sensor data becomes available but returns SBUFFER_NO_DATA
+ * If 'buffer' is empty, the function doesn't block until new data becomes available but returns SBUFFER_NO_DATA
  * Returns SBUFFER_SUCCESS on success and SBUFFER_FAILURE if an error occured
  */
-int sbuffer_remove(sbuffer_t * buffer,sensor_data_t * data);
+int sbuffer_remove(sbuffer_t * buffer, sbuffer_data_t * data);
 
 
-/* Inserts the sensor data in 'data' at the end of 'buffer' (at the 'tail')
+/* Inserts the data in 'data' at the end of 'buffer' (at the 'tail')
  * Returns SBUFFER_SUCCESS on success and SBUFFER_FAILURE if an error occured
 */
-int sbuffer_insert(sbuffer_t * buffer, sensor_data_t * data);
+int sbuffer_insert(sbuffer_t * buffer, sbuffer_data_t * data);
 
 
 #endif  //_SBUFFER_H_

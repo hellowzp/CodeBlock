@@ -24,7 +24,7 @@
 #endif
 
 #else
-#define HOST "10.43.73.51"
+#define HOST "192.168.56.1"
 #define DATABASE "sensors"
 #define USER "remote_root"
 #define PASSWORD "secret"

@@ -1,6 +1,9 @@
 **/bin/**
 **/build/**
 **/temp/**
+**/tmp/**
+
+.DS_Store
 
 # Compiled Object files
 *.slo

@@ -1,3 +1,4 @@
+#define _SVID_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -8,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "config.h"
-#include "tcpsock.h"
+#include "lib/tcpsock.h"
 
 // conditional compilation option to control the number of measurements this sensor node wil generate
 #if (LOOPS > 1)

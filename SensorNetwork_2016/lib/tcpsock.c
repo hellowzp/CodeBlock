@@ -15,6 +15,7 @@
 
 #include "tcpsock.h"
 
+//#define DEBUG
 
 #ifdef DEBUG
 	#define TCP_DEBUG_PRINTF(condition,...)									\
@@ -53,7 +54,7 @@ struct tcpsock {
   int sd;		// socket descriptor
   char * ip_addr;	// socket IP address
   int port;   		// socket port number
-  } ;		
+} ;
 
 
 static tcpsock_t * tcp_sock_create();  
@@ -126,7 +127,7 @@ int tcp_active_open(tcpsock_t ** sock, int remote_port, char * remote_ip)
 
 
 int tcp_close(tcpsock_t ** socket)
-{
+{  
   int result;
   if (socket == NULL) return TCP_SOCKET_ERROR; 
   if (*socket == NULL) return TCP_SOCKET_ERROR; 
@@ -142,8 +143,11 @@ int tcp_close(tcpsock_t ** socket)
       result = shutdown((*socket)->sd, SHUT_RDWR);
       //if ((result of shutdown==-1)&&(errno!=ENOTCONN)) //socket wasn't connected 
       TCP_DEBUG_PRINTF(result==-1,"Shutdown() failed with errno = %d [%s]", errno, strerror(errno));
-      result = close((*socket)->sd); // try to close the socket descriptor
-      TCP_DEBUG_PRINTF(result==-1,"Close() failed with errno = %d [%s]", errno, strerror(errno));
+      if (result != -1)
+      {
+	result = close((*socket)->sd); // try to close the socket descriptor
+	TCP_DEBUG_PRINTF(result==-1,"Close() failed with errno = %d [%s]", errno, strerror(errno));
+      }
     }
   }
   // overwrite memory before free to make socket invalid (even if memory is accidently reused)!

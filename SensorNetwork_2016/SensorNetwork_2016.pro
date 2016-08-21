@@ -4,14 +4,26 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.c \
-    lab7/file_creator.c \
-    lab8/sensor_node.c \
-    lab8/tcpsock.c \
-    lab9/sbuffer.c
+    file_creator.c \
+    lib/tcpsock.c \
+    sensor_node.c \
+    gateway.c \
+    connmgr.c \
+    datamgr.c \
+    sbuffer.c \
+    sensor_db.c \
+    lib/dplist.c
 
 HEADERS += \
-    lab7/config.h \
-    lab8/config.h \
-    lab8/tcpsock.h \
-    lab9/sbuffer.h
+    config.h \
+    connmgr.h \
+    datamgr.h \
+    sbuffer.h \
+    sensor_db.h \
+    lib/dplist.h \
+    lib/tcpsock.h \
+    errmacros.h
+
+OTHER_FILES += \
+    Makefile
 
