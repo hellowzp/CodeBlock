@@ -7,7 +7,7 @@
  * This method starts listening on the given port and when when a sensor node connects it 
  * stores the sensor data in the shared buffer.
  */
-void connmgr_listen(int port_number, sbuffer_t ** buffer);
+void connmgr_listen(int port, sbuffer_t ** buffer);
 
 /*
  * This method should be called to clean up the connmgr, and to free all used memory. 

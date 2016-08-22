@@ -60,6 +60,7 @@ int insert_sensor(DBCONN * conn, sensor_id_t id, sensor_value_t value, sensor_ts
     }
     return 0;
 }
+
 /**/
 int insert_sensor_from_file(DBCONN * conn, FILE * sensor_file)
 {
@@ -72,6 +73,20 @@ int insert_sensor_from_file(DBCONN * conn, FILE * sensor_file)
         insert_sensor(conn, data.id, data.value, data.ts);
     }
     return 0;
+}
+
+void storagemgr_parse_sensor_data(DBCONN * conn, sbuffer_t **sbuffer)
+{
+    sensor_data_t sensor_data;
+
+    while (1)
+    {
+        sbuffer_data_t sbuffer_data;
+        if(sbuffer_remove(*sbuffer, &sbuffer_data, 5, 0) == SBUFFER_NO_DATA)
+            break;
+        sensor_data = sbuffer_data.sensor_data;
+        insert_sensor(conn, sensor_data.id, sensor_data.value, sensor_data.ts);
+    }
 }
 
 int find_sensor_all(DBCONN * conn, callback_t f)

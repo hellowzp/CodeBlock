@@ -19,6 +19,8 @@
   #error SET_MIN_TEMP not set
 #endif
 
+typedef struct sensor_node sensor_node_t;
+
 /*
  * Reads continiously all data from the shared buffer data structure, parse the room_id's
  * and calculate the running avarage for all sensor ids
