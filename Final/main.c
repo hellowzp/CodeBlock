@@ -12,7 +12,6 @@
 #include "connmgr.h"
 #include "datamgr.h"
 #include "sensor_db.h"
-#include "errmacros.h"
 #include "lib/dplist.h"
 
 #define FIFO_NAME 	"logFifo"

@@ -10,7 +10,7 @@
 #include "config.h"
 #include "sbuffer.h"
 #include "datamgr.h"
-#include "./lib/dplist.h"
+#include "lib/dplist.h"
 
 struct sensor_node{
 	sensor_id_t sensor_id;
@@ -21,6 +21,8 @@ struct sensor_node{
 	int buffer_size;
 };
 
+dplist_t *list =  NULL;
+int dplist_errno;
 extern FILE *fifo_wr;
 
 void * datamgr_element_copy(void *element)
@@ -54,9 +56,6 @@ int datamgr_element_compare(void *x, void *y)
 	return -1;
 }
 
-dplist_t *list =NULL;
-int dplist_errno;
- 
 void datamgr_parse_sensor_data(FILE * fp_sensor_map, sbuffer_t **sbuffer)
 {
 	sensor_data_t * sensor_data = NULL;

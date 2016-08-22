@@ -17,7 +17,6 @@
 
 
 #include "config.h"
-#include "util.h"
 #include "sbuffer.h"
 #include "connmgr.h"
 #include "lib/tcpsock.h"

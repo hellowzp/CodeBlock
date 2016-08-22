@@ -6,11 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "errmacros.h"
 #include "config.h"
 #include "sbuffer.h"
 #include "datamgr.h"
-#include "./lib/dplist.h"
+#include "lib/dplist.h"
 
 struct sensor_node{
 	sensor_id_t sensor_id;
@@ -21,12 +20,13 @@ struct sensor_node{
 	int buffer_size;
 };
 
+dplist_t *list;
+int dplist_errno;
 extern FILE *fifo_wr;
 
 void * datamgr_element_copy(void *element)
 {
-	sensor_node_t * copy;
-	copy = malloc(sizeof(sensor_node_t));
+	sensor_node_t * copy = malloc(sizeof(sensor_node_t));
 	MALLOC_ERROR(copy);
 	
 	copy->sensor_id = ((sensor_node_t *)element)->sensor_id;
@@ -53,9 +53,6 @@ int datamgr_element_compare(void *x, void *y)
 		return 1;
 	return -1;
 }
-
-dplist_t *list =NULL;
-int dplist_errno;
  
 void datamgr_parse_sensor_data(FILE * fp_sensor_map, sbuffer_t **sbuffer)
 {
