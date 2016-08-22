@@ -115,12 +115,10 @@ void *connmgr(void * arg)
 
 void *datamgr(void *arg)
 {
-	FILE *fp_text;
-	fp_text = fopen("room_sensor.map", "r");
+    FILE *fp_text = fopen("room_sensor.map", "r");
 	FILE_ERROR(fp_text, "Couldn't open room_sensor.map\n");
 	
 	datamgr_parse_sensor_data(fp_text, &buffer);
-	datamgr_free();
 	FILE_CLOSE_ERROR(fclose(fp_text));
 	pthread_exit(NULL);
 }
@@ -130,7 +128,6 @@ void *storagemgr(void *arg)
 	sqlite3 *db;
 	db = init_connection(1);
 	
-	storagemgr_parse_sensor_data(db, &buffer);
-	disconnect(db);
+    storagemgr_parse_sensor_data(db, &buffer);
 	pthread_exit(NULL);
 }
