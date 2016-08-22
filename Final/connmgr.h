@@ -5,6 +5,9 @@
 
 typedef struct connection connection_t;
 
+void setup_server(int port);
+void close_server();
+
 void connmgr_free();
 /*This method should be called to clean up the connmgr, and to free all used
  * memory. After this no new connections will be accepted*/

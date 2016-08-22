@@ -108,8 +108,8 @@ int main(int argc, const char *argv[])
 void *connmgr(void * arg)
 {
 	int port_number = *((int *)arg);
-	
-	connmgr_listen(port_number, &buffer);
+	setup_server(port_number);
+//	connmgr_listen(port_number, &buffer);
 	pthread_exit(NULL);
 }
 
