@@ -4,13 +4,13 @@
 #include "dplist.h"
 
 #ifdef DEBUG
-	#define DEBUG_PRINTF(...) 									\
+	#define DEBUG_PRINT(...) 									\
 		do {											\
 			printf("\nIn %s - function %s at line %d: ", __FILE__, __func__, __LINE__);	\
 			printf(__VA_ARGS__);								\
 		} while(0)
 #else
-	#define DEBUG_PRINTF(...) (void)0
+	#define DEBUG_PRINT(...) (void)0
 #endif
 
 
@@ -19,7 +19,7 @@
 		if ((condition))			\
 		{					\
 		  dplist_errno = dplist_errno_value;	\
-		  DEBUG_PRINTF(#condition "failed");	\
+		  DEBUG_PRINT(#condition "failed");	\
 		  return __VA_ARGS__;			\
 		}					\
 		dplist_errno = DPLIST_NO_ERROR;			\

@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "errmacros.h"
 #include "config.h"
 #include "sbuffer.h"
 #include "datamgr.h"

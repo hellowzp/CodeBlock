@@ -4,7 +4,7 @@ LDIR = lib
 # can also be written as :
 OBJ = $(addprefix $(OBJDIR)/,main.o connmgr.o datamgr.o sensor_db.o sbuffer.o)
 CC = gcc
-CFLAGS = -Wall -std=c11 -Werror -c -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5
+CFLAGS = -Wall -std=c11 -Werror -c -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=60
 LFLAGS = -Wall -L./$(LDIR) -Wl,-rpath=./$(LDIR) -lsqlite3
 CDFLAGS = -Wall -std=c11 -Werror -c -fPIC
 LDFLAGS = -Wall -shared -lm

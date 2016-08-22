@@ -12,7 +12,6 @@
 #include "connmgr.h"
 #include "datamgr.h"
 #include "sensor_db.h"
-#include "errmacros.h"
 #include "lib/dplist.h"
 
 #define FIFO_NAME 	"logFifo"
@@ -115,11 +114,11 @@ void *connmgr(void * arg)
 
 void *datamgr(void *arg)
 {
-    FILE *fp_text = fopen("room_sensor.map", "r");
-	FILE_ERROR(fp_text, "Couldn't open room_sensor.map\n");
+//    FILE *fp_text = fopen("room_sensor.map", "r");
+//	FILE_ERROR(fp_text, "Couldn't open room_sensor.map\n");
 	
-	datamgr_parse_sensor_data(fp_text, &buffer);
-	FILE_CLOSE_ERROR(fclose(fp_text));
+//	datamgr_parse_sensor_data(fp_text, &buffer);
+//	FILE_CLOSE_ERROR(fclose(fp_text));
 	pthread_exit(NULL);
 }
 

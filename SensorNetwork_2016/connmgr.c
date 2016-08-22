@@ -7,6 +7,7 @@
 #include <sys/select.h>
 #include "config.h"
 #include "errutil.h"
+#include "util.h"
 #include "sbuffer.h"
 #include "connmgr.h"
 #include "lib/tcpsock.h"
@@ -23,9 +24,12 @@ typedef struct connection{
     sensor_id_t sensor_id;
 } connection_t;
 
-dplist_t *conn_list = NULL;
-tcpsock_t * server, * client;
+dplist_t * conn_list;
+tcpsock_t * server_socket, * client_socket;
+
+int listen_fd, max_fd;
 fd_set readfds;
+
 int dplist_errno;
 extern FILE * fifo_wr;
 
@@ -63,115 +67,84 @@ int connmgr_element_compare(void *x, void *y)
 
 void handle_new_connection()
 {
-    if (tcp_wait_for_connection(server,&client)!=TCP_NO_ERROR) exit(EXIT_FAILURE);
-    connection_t * conn = NULL;
+    tcpsock_t * client_socket;
+    if (tcp_wait_for_connection(server_socket,&client_socket)!=TCP_NO_ERROR) exit(EXIT_FAILURE);
 
-    conn = malloc(sizeof(*conn));
+    connection_t * conn = malloc(sizeof(*conn));
     MALLOC_ERROR(conn);
 
-    conn->client = client;
+    conn->client = client_socket;
     conn->timestamp = time(NULL);
     conn->sensor_id = 0;    //sensor_id not known yet.
 
     dpl_insert_at_index(conn_list, conn, dpl_size(conn_list), true); /* save client */
-  assert(dplist_errno == DPLIST_NO_ERROR);
+    assert(dplist_errno == DPLIST_NO_ERROR);
 
-    printf("Peer has opened a connection\n");
+    int fd;
+    if (tcp_get_sd(client_socket,&fd)!=TCP_NO_ERROR) exit(EXIT_FAILURE);
+    printf("New socket connection created with fd %d\n", fd);
 
-    free(conn);
 }
-#ifdef DEBUG //save sensor data in binary format
-void write_data_to_file(FILE *fp_bin, sensor_id_t id, sensor_value_t value, sensor_ts_t ts)
-{
-  fwrite(&id, sizeof(id), 1, fp_bin);
-    fwrite(&value, sizeof(value), 1, fp_bin);
-    fwrite(&ts, sizeof(ts), 1, fp_bin);
-    if (ferror(fp_bin) != 0)
-    {
-        printf("failed to write_data_to_file\n");
-        exit(EXIT_FAILURE);
-    }
-}
-#endif
+
 void handle_new_data(sbuffer_t *buffer)
 {
-  sensor_data_t data;
-  int bytes, result;
+    sensor_data_t data;
+    int bytes, result;
     int client_sd;
 
-#ifdef DEBUG // save sensor data in text format and binary format for test purposes
-        FILE *fp_text, *fp_bin;
-    fp_text = fopen("sensor_data_text", "a");
-    FILE_ERROR(fp_text,"Couldn't create sensor_data in text\n");
-    fp_bin = fopen("sensor_data_recv", "a");
-    FILE_ERROR(fp_text,"Couldn't create sensor_data in binary\n");
-#endif
-
     dplist_node_t * ref = dpl_get_first_reference(conn_list);
-  assert(dplist_errno == DPLIST_NO_ERROR);
+    assert(dplist_errno == DPLIST_NO_ERROR);
 
     while(ref != NULL)/* check all the clients  for data */
     {
-        connection_t *conn = NULL;
-        conn = dpl_get_element_at_reference(conn_list, ref);
-    assert(dplist_errno == DPLIST_NO_ERROR);
+        connection_t *conn = dpl_get_element_at_reference(conn_list, ref);
+        assert(dplist_errno == DPLIST_NO_ERROR);
 
         if (tcp_get_sd(conn->client, &client_sd) != TCP_NO_ERROR) exit(EXIT_FAILURE);
         if(FD_ISSET(client_sd, &readfds))
         {
             // read sensor ID
             bytes = sizeof(data.id);
-            tcp_receive(conn->client,(void *)&data.id,&bytes);
+            tcp_receive(conn->client,(void *)&data.id, &bytes);
             // read temperature
             bytes = sizeof(data.value);
-            tcp_receive(conn->client,(void *)&data.value,&bytes);
+            tcp_receive(conn->client,(void *)&data.value, &bytes);
             // read timestamp
             bytes = sizeof(data.ts);
-            result = tcp_receive(conn->client, (void *)&data.ts,&bytes);
+            result = tcp_receive(conn->client, (void *)&data.ts, &bytes);
             if ((result==TCP_NO_ERROR) && bytes)
             {
                 conn->timestamp = time(NULL);
                 if(conn->sensor_id == 0)
                 {
-                    //flockfile(fp_FIFO_w);
-                    fprintf(fifo_wr, "A sensor node with %" PRIu16 " has opened a new connection\n", data.id);
+                    conn->sensor_id = data.id;
+                    fprintf(fifo_wr, "Data received from new sensor node with id  %" PRIu16 "\n", data.id);
                     fflush(fifo_wr);
-                    //funlockfile(fp_FIFO_w);
-
-#ifdef DEBUG
-                    fprintf(stderr, "DEBUG massge, A sensor node with %" PRIu16 " has opened a new connection\n", data.id);
-#endif
-                }
-
-                conn->sensor_id = data.id;
+                }     
 
                 sbuffer_data_t sbuffer_data;
                 sbuffer_data.sensor_data = data;
                 if (sbuffer_insert(buffer, &sbuffer_data) != SBUFFER_SUCCESS) exit(EXIT_FAILURE); //insert into sbuffer
-#ifdef DEBUG
-                write_data_to_file(fp_bin, data.id, data.value, data.ts);
-                fprintf(fp_text,"%" PRIu16 " %g %ld\n", data.id,data.value, data.ts); 	//save sensor data in text format.
-#endif
+
             }
             else
             {
                 if(tcp_close(&conn->client) != TCP_NO_ERROR) exit(EXIT_FAILURE);
                 FD_CLR(client_sd, &readfds);
 
-                //flockfile(fp_FIFO_w);
-                fprintf(fifo_wr, "The sensor node with %" PRIu16 " has closed the connection\n", conn->sensor_id);
+                fprintf(fifo_wr, "Receive data from The sensor node with id %" PRIu16 " failed\n", conn->sensor_id);
                 fflush(fifo_wr);
                 //funlockfile(fp_FIFO_w);
 
 #ifdef DEBUG
-                fprintf(stderr, "DEBUG log_mssge, The sensor node with %" PRIu16 " has closed the connection\n", conn->sensor_id);
+                fprintf(stderr, "Receive data from The sensor node with id %" PRIu16 " failed\n", conn->sensor_id);
 #endif
 
                 dplist_node_t *tmp = ref;
                 ref = dpl_get_previous_reference(conn_list, ref);
-            assert(dplist_errno == DPLIST_NO_ERROR);
+                assert(dplist_errno == DPLIST_NO_ERROR);
                 dpl_remove_at_reference(conn_list, tmp, true);
-            assert(dplist_errno == DPLIST_NO_ERROR);
+                assert(dplist_errno == DPLIST_NO_ERROR);
 
                 if (result==TCP_CONNECTION_CLOSED)
                     printf("Peer has closed connection\n");
@@ -180,85 +153,69 @@ void handle_new_data(sbuffer_t *buffer)
             }
         }
         ref = dpl_get_next_reference(conn_list, ref);
-    assert(dplist_errno == DPLIST_NO_ERROR);
+        assert(dplist_errno == DPLIST_NO_ERROR);
     }
-#ifdef DEBUG
-    FILE_CLOSE_ERROR(fclose(fp_bin));
-    FILE_CLOSE_ERROR(fclose(fp_text));
-#endif
 }
 
-void build_select_readfds(int * max_fd)
+void reset_select_readfds()
 {
-    int client_sd;
-    int listen_fd;
-
-    if (tcp_get_sd(server, &listen_fd) != TCP_NO_ERROR) exit(EXIT_FAILURE);
-
     FD_ZERO(&readfds);
     FD_SET(listen_fd, &readfds);
 
     dplist_node_t * ref = dpl_get_first_reference(conn_list);
-  assert(dplist_errno == DPLIST_NO_ERROR);
+    assert(dplist_errno == DPLIST_NO_ERROR);
 
-    while(ref != NULL)/* check all the clients  for data */
+    while(ref != NULL)/* check all the clients for data */
     {
         long int t = 0;
-        connection_t *conn = NULL;
-
-        conn = dpl_get_element_at_reference(conn_list, ref);
-    assert(dplist_errno == DPLIST_NO_ERROR);
+        connection_t *conn = dpl_get_element_at_reference(conn_list, ref);
+        assert(dplist_errno == DPLIST_NO_ERROR);
 
         if ((t = time(NULL) - conn->timestamp) >= TIMEOUT)
         {
             //flockfile(fp_FIFO_w);
-            fprintf(fifo_wr, "The sensor node with %" PRIu16 " has closed the connection\n", conn->sensor_id);
+            fprintf(fifo_wr, "Closing the sensor node with %" PRIu16 " after timeout\n", conn->sensor_id);
             fflush(fifo_wr);
-            //funlockfile(fp_FIFO_w);
-
-#ifdef DEBUG
-            fprintf(stderr, "DEBUG log_mssge, The sensor node with %" PRIu16 " has closed the connection\n", conn->sensor_id);
-#endif
 
             if (tcp_close(&conn->client)!=TCP_NO_ERROR) exit(EXIT_FAILURE);
-            printf("connection timout, disconnect peer %ld\n", t);
+            DEBUG_PRINT("The sensor node with %" PRIu16 " has closed the connection\n", conn->sensor_id);
 
-            dplist_node_t *tmp = ref;
+            dplist_node_t * tmp = ref;
             ref = dpl_get_next_reference(conn_list, ref);
-        assert(dplist_errno == DPLIST_NO_ERROR);
+            assert(dplist_errno == DPLIST_NO_ERROR);
             dpl_remove_at_reference(conn_list, tmp, true);
-        assert(dplist_errno == DPLIST_NO_ERROR);
+            assert(dplist_errno == DPLIST_NO_ERROR);
         }
-        else
+            else
         {
+            int client_sd;
             if(tcp_get_sd(conn->client, &client_sd) != TCP_NO_ERROR) exit(EXIT_FAILURE);
             FD_SET(client_sd, &readfds); /* add new client descriptor into readfds */
-            *max_fd = ((*max_fd) > client_sd ? *max_fd : client_sd);
+            max_fd = max_fd > client_sd ? max_fd : client_sd;
             ref = dpl_get_next_reference(conn_list, ref);
-        assert(dplist_errno == DPLIST_NO_ERROR);
+            assert(dplist_errno == DPLIST_NO_ERROR);
         }
     }
 }
 
-void connmgr_listen(int port_number, sbuffer_t **buffer)
+void connmgr_listen(int port, sbuffer_t **buffer)
 {
     struct timeval tv;
-    int listen_fd;
-    int max_fd;
+//    int listen_fd;  // listening socket fd
+//    int max_fd;
 
-  printf("Sensor gateway is started\n");
-  if (tcp_passive_open(&server,port_number)!=TCP_NO_ERROR) exit(EXIT_FAILURE);
+    DEBUG_PRINT("Starting sensor gateway...\n");
+    if (tcp_passive_open(&server_socket,port)!=TCP_NO_ERROR) exit(EXIT_FAILURE);
 
-    if (tcp_get_sd(server, &listen_fd) != TCP_NO_ERROR) exit(EXIT_FAILURE);
+    if (tcp_get_sd(server_socket, &listen_fd) != TCP_NO_ERROR) exit(EXIT_FAILURE);
     max_fd = listen_fd;
 
     conn_list = dpl_create(connmgr_element_copy, connmgr_element_free, connmgr_element_compare);
-  assert(dplist_errno == DPLIST_NO_ERROR);
+    assert(dplist_errno == DPLIST_NO_ERROR);
 
-    do
-    {
+    while(1) {
         int nready;
-        build_select_readfds(&max_fd);
+        reset_select_readfds();
         tv.tv_sec = TIMEOUT;
         tv.tv_usec = 0;
         nready = select(max_fd+1, &readfds, NULL, NULL, &tv);
@@ -266,19 +223,17 @@ void connmgr_listen(int port_number, sbuffer_t **buffer)
 
         if (nready == 0)
         {
-            printf("connection time out\n");
-            if (tcp_close( &server )!=TCP_NO_ERROR) exit(EXIT_FAILURE);
-            printf("Sensor gatway is shutting down\n");
-
+            printf("No connection after timeout, closing server...\n");
+            if (tcp_close( &server_socket )!=TCP_NO_ERROR) exit(EXIT_FAILURE);
             break;
         }
         else
         {
-            if (FD_ISSET(listen_fd, &readfds)) /* new client connection */
+            if (FD_ISSET(listen_fd, &readfds)) // new client connection
                 handle_new_connection();
-            handle_new_data(*buffer);
+            handle_new_data(*buffer);   // request on old connection
         }
-    }while(1);
+    }
 
 }
 

@@ -1,6 +1,8 @@
 #ifndef _DPLIST_H_
 #define _DPLIST_H_
 
+#include <stdbool.h>
+
 extern int dplist_errno;
 
 /*
@@ -11,7 +13,7 @@ extern int dplist_errno;
 #define DPLIST_EMPTY_ERROR 2  //error due to an operation that can't be executed on an empty list
 #define DPLIST_INVALID_ERROR 3 //error due to a list operation applied on a NULL list 
 
-typedef enum {false, true} bool; // or use C99 #include <stdbool.h> 
+// typedef enum {false, true} bool; // or use C99 #include <stdbool.h>
 
 typedef struct dplist dplist_t; // slist_t is a struct containing at least a head pointer to the start of the list; later function pointers to element_copy, element_compare, element_free, etc. will be added
 
